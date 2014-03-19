@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Angular Module and "breeze service"
  *
- * v.0.8.2
+ * v.0.8.4
  *
  * The beginnings of a "breeze service" that tells Breeze to
  * - use $q for its promises rather than Q.js
@@ -76,7 +76,20 @@
  *   return factory;
  * }
  */
-(function (window) {
+(function (definition, window) {
+    if (window.breeze) {
+        definition(window.breeze);
+    } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
+        // CommonJS or Node
+        var b = require('breeze');
+        definition(b);
+    } else if (typeof define === "function" && define["amd"] && !window.breeze) {
+        // Requirejs / AMD 
+        define(['breeze'], definition);
+    } else {
+        throw new Error("Can't find breeze");
+    }
+}(function (breeze) {
     'use strict';
 
     angular.module('breeze.angular', [], ['$provide', function ($provide) {
@@ -84,7 +97,6 @@
     }]);
 
     function breezeProvider() {
-        var breeze = window.breeze;
 
         // config breeze to use the native 'backingStore' modeling adapter appropriate for Ng
         // 'backingStore' is the Breeze default when it detects that KnockoutJS is absent
@@ -129,4 +141,4 @@
         }
     }
 
-})(this);
+}, this));
