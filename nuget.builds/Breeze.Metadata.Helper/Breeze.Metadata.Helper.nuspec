@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Metadata.Helper</id>
-        <version>1.0.5</version>
+        <version>1.0.6</version>
         <title>Breeze Labs: Breeze Metadata Helper</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
