@@ -1,0 +1,28 @@
+{
+  "name": "breeze.js.labs",
+  "version": "1.3.5",
+  "homepage": "http://www.breezejs.com/documentation/what-are-breeze-labs",
+  "authors": [
+    "Ward Bell <wardbell@hotmail.com>"
+  ],
+  "description": "Breeze Labs projects are extensions to Breeze. They are meant to help you become more productive with Breeze, especially in combination with other libraries such as AngularJS, Durandal, and Knockout.",
+  "keywords": [
+    "breeze",
+    "breezejs",
+    "angular",
+    "durandal",
+    "knockout",
+    "ko",
+    "ng",
+    "odata",
+    "javascript"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
