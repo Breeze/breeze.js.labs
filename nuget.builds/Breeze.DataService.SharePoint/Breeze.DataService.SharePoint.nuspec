@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.DataService.SharePoint</id>
-        <version>0.2.3</version>
+        <version>0.2.4</version>
         <title>Breeze Labs SharePoint 2013 OData DataServiceAdapter</title>
         <authors>Ward Bell,Andrew Connell</authors>
         <owners>Ward Bell</owners>
