@@ -5,7 +5,7 @@
  *
  * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
  * 
- * REQUIRES breeze.labs.dataservice.rest.js
+ * REQUIRES breeze.labs.dataservice.abstractrest.js
  * 
  * This adapter cannot get metadata from the server and in general one should
  * not do so because such metadata cover much more of than you want and are huge (>1MB)
