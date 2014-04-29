@@ -5,11 +5,11 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 0.9.2
+ * Version: 0.9.3
  * --------------------------------------------------------------------------------
  * Adds getEntityGraph method to Breeze EntityManager and EntityManager prototype
  * Source:
- * https://github.com/IdeaBlade/Breeze/blob/master/Breeze.Client/Scripts/Labs/breeze.getEntityGraph.js
+ * https://github.com/Breeze/breeze.js.labs/blob/master/breeze.getEntityGraph.js
  *
  * Depends on Breeze which it patches
  *
@@ -17,7 +17,7 @@
  * http://www.breezejs.com/documentation/getentitygraph 
  *  
  * For example usage, see:
- * https://github.com/IdeaBlade/Breeze/blob/master/Samples/DocCode/DocCode/tests/getEntityGraphTests.js  
+ * https://github.com/Breeze/breeze.js.samples/tree/master/net/DocCode/DocCode/tests/getEntityGraphTests.js  
  */
 //#endregion
 (function (definition, window) {
@@ -38,7 +38,7 @@
     var EntityManager = breeze.EntityManager;
     var proto = EntityManager.prototype;
 
-    if (!EntityManager.getEntityGraph){
+    if (!EntityManager.getEntityGraph) {
         /**
         Get related entities of root entity (or root entities) as specified by expand. 
         @example
@@ -102,14 +102,14 @@
         return graph;
 
         function addToGraph(entities) {
-            entities.forEach(function(entity) {
+            entities.forEach(function (entity) {
                 if (entity && graph.indexOf(entity) < 0) { graph.push(entity); }
             });
         }
 
         function getRootInfo() {
             var compatTypes;
- 
+
             roots.forEach(function (root, ix) {
                 var aspect;
                 if (!root || !(aspect = root.entityAspect)) {
@@ -146,7 +146,7 @@
                 // Types differs. Look for closest common base type
                 // does thisType derive from current rootType?
                 var baseType = rootType;
-                do { 
+                do {
                     compatTypes = compatTypes || baseType.getSelfAndSubtypes();
                     if (compatTypes.indexOf(thisType) > -1) {
                         rootType = baseType;
@@ -167,7 +167,7 @@
                     baseType = baseType.baseEntityType;
                 } while (baseType)
 
-                throw getRootErr(ix,"is not EntityType-compatible with other roots");
+                throw getRootErr(ix, "is not EntityType-compatible with other roots");
             }
         }
 
@@ -182,7 +182,7 @@
                 if (expand.propertyPaths) { // expand clause
                     expand = expand.propertyPaths;
                 } else if (Array.isArray(expand)) {
-                    if (!expand.every(function(elem) { return typeof elem === 'string'; })) {
+                    if (!expand.every(function (elem) { return typeof elem === 'string'; })) {
                         throw '';
                     }
                 } else {
@@ -197,7 +197,7 @@
         function buildGraph() {
             if (expand && expand.length) {
                 var fns = expand.map(makePathFn);
-                fns.forEach(function (fn) { fn(roots); });            
+                fns.forEach(function (fn) { fn(roots); });
             }
         }
 
@@ -222,7 +222,7 @@
                     entities.forEach(function (entity) {
                         related = related.concat(f(entity));
                     });
-                    if (related.length === 0) {return;} // bail out now
+                    if (related.length === 0) { return; } // bail out now
                     addToGraph(related);
                     if (fi < flen - 1) { // only if more fns
                         entities = [];
@@ -230,7 +230,7 @@
                             if (entities.indexOf(entity) < 0) {
                                 entities.push(entity);
                             }
-                        });                        
+                        });
                     };
                 }
             };
@@ -269,7 +269,7 @@
                             for (var i = 0; i < grpCount; i += 1) {
                                 val = grps[i]._entities[grps[i]._indexMap[keyValue]];
                                 if (val) { break; }
-                            }                          
+                            }
                         } catch (e) { rethrow(e); }
                         return val;
                     };
@@ -282,9 +282,9 @@
                         var vals = [];
                         try {
                             var keyValue = entity.entityAspect.getKey().values[0];
-                            grps.forEach(function(grp) {
-                                vals = vals.concat(grp._entities.filter(function(en) {
-                                    return en.getProperty(fkName) === keyValue;
+                            grps.forEach(function (grp) {
+                                vals = vals.concat(grp._entities.filter(function (en) {
+                                    return en && en.getProperty(fkName) === keyValue;
                                 }));
                             });
                         } catch (e) { rethrow(e); }
