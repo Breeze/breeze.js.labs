@@ -5,11 +5,11 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 1.0.6
+ * Version: 1.0.7
  * --------------------------------------------------------------------------------
  * Adds metadataHelper extensions to Breeze
  * Source:
- * https://github.com/IdeaBlade/Breeze/blob/master/Breeze.Client/Scripts/Labs/breeze.metadata-helper.js
+ *   https://github.com/Breeze/breeze.js.labs/blob/master/breeze.metadata-helper.js
  *
  * Depends on Breeze which it patches
  *
@@ -21,7 +21,7 @@
  * Use these helpers "as is" or use for inspiration in creating your own.
  *
  * For example usage, see:
- * https://github.com/IdeaBlade/Breeze/blob/master/Samples/DocCode/DocCode/tests/helpers/metadataOnClient.js
+ * https://github.com/Breeze/breeze.js.samples/blob/master/net/DocCode/DocCode/tests/helpers/metadataOnClient.js
  *
  * For a discussion of how they work and why, see:
  * http://www.breezejs.com/documentation/metadata-by-hand#addTypeToStore
@@ -336,6 +336,9 @@
                 } else if (keyLc === 'max' && (prop.dataType === undefined || prop.dataType === DT.String)) {
                     renameAttrib(prop, key, 'maxLength');
                 } else if (keyLc.indexOf('null') > -1 && key !== 'isNullable' && typeof (prop[key]) === 'boolean') {
+                    renameAttrib(prop, key, 'isNullable');
+                } else if (keyLc === 'required') {
+                    prop[key] = !prop[key];
                     renameAttrib(prop, key, 'isNullable');
                 } else if (keyLc.indexOf('key') > -1 && key !== 'isPartOfKey' && typeof (prop[key]) === 'boolean') {
                     renameAttrib(prop, key, 'isPartOfKey');
