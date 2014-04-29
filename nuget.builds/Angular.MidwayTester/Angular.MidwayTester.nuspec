@@ -2,20 +2,22 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Angular.MidwayTester</id>
-        <version>2.0.5</version>
+        <version>2.0.6</version>
+        <title>Breeze Labs: async integration test helper for Angular apps</title>
         <authors>Matias Niemelä</authors>
         <owners>Ward Bell</owners>
         <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
         <projectUrl>https://github.com/yearofmoo/ngMidwayTester</projectUrl>
+        <iconUrl>http://www.breezejs.com/sites/all/images/breezelabsb.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>A pure-javascript integration tester for AngularJS that can be run inline with application code.
+        <description>A pure-javascript integration tester for AngularJS that can be run inline with application code. Authored by Matias Niemelä and offered from Breeze Labs with his kind permission.
 
 This package adds a single file, "ngMidwayTester.js" to your project's "scripts" folder.
 
 See the author's post, "Full-Spectrum Testing with AngularJS and Karma", for an extensive discussion of the why and how (http://www.yearofmoo.com/2013/01/full-spectrum-testing-with-angularjs-and-karma.html)</description>
         <summary>Helper library for AngularJS asynchronous integration testing.</summary>
         <copyright>Copyright © 2014 Matias Niemeläe</copyright>
-        <tags>angular testing asynchronous midway javascript</tags>
+        <tags>angular testing asynchronous midway javascript breeze labs client</tags>
         <dependencies>
             <dependency id="AngularJS.Core" />
             <dependency id="AngularJS.Route" />
