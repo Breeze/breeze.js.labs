@@ -180,18 +180,28 @@
         // Determine if this is an Entity node and update the node appropriately if so
         function updateEntityNode(node, mappingContext, result) {
             var metadata = node.__metadata;
-            if (!metadata) { return; }
+            if (!metadata) { return; } // every SharePoint entity node has __metadata
+
+            var entityType = node.$entityType; 
+            if (entityType){
+                // save result node
+                result.entityType = entityType;
+                result.extra = metadata;
+                return;
+            }            
+
+            // query node
 
             var typeName = dataServiceAdapter._serverTypeNameToClient(mappingContext, metadata.type);
-            var entityType = dataServiceAdapter._getNodeEntityType(mappingContext, typeName);
+            entityType = dataServiceAdapter._getNodeEntityType(mappingContext, typeName);
 
             if (entityType) {
-                // ASSUME if #-of-properties on node is <= #-of-props for the type 
+                // ASSUME if #-of-properties on node is >= #-of-props for the type 
                 // that this is the full entity and not a partial projection. 
                 // Therefore we declare that we've received an entity 
                 if (entityType._mappedPropertiesCount <= Object.keys(node).length - 1) {
                     result.entityType = entityType;
-                    result.extra = node.__metadata;
+                    result.extra = metadata;
 
                     // Delete node properties that look like nested navigation paths
                     // Breeze gets confused into thinking such properties contain actual entities. 
