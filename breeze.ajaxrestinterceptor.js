@@ -1,12 +1,21 @@
 ﻿//#region Copyright, Version, and Description
 /*
+ * DO NOT USE. TOO PRIMITIVE AND NOT GOOD GUIDANCE. WILL BE DEPRECATED SOON
+ * 
+ * More to learn from the breeze.labs.dataservice.abstractrest.js, 
+ * a dataservice adapter ABSTRACT BASE class that talks to REST-like web services
+ * with single-entity resource endpoints for CRUD. 
+ * 
+ * Concrete implementations of this "abstract REST adapter" include 
+ * "azuremobileservices" and "sharepoint" dataservice adapters.
+ * --------------------------------------------------------------------------------
  * Copyright 2013 IdeaBlade, Inc.  All Rights Reserved.  
  * Use, reproduction, distribution, and modification of this code is subject to the terms and 
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 1.0.3
-  * --------------------------------------------------------------------------------
+ * Version: 1.0.4
+ * --------------------------------------------------------------------------------
  * Converts typical entity-by-id query into a url format typical in ReST-like APIs
  * Experimental! This is a primitive implementation, not currently "supported".
  * Use it for guidance and roll your own.
@@ -49,6 +58,9 @@
         var interceptor = this;
         
         interceptor.origAjaxFn = adapter.ajax;
+        interceptor.callableOrigAjaxFn = function(settings) {
+             return interceptor.origAjaxFn.call(adapter,settings);
+        };
         interceptor.restyAjaxFn = createRestyAjaxFn(interceptor);
         
         /**
@@ -84,9 +96,9 @@
                 lastSettings: settings
             };
             
-            //Delegate to the adapter's current ajax function
+            //Delegate to the adapter's original ajax function
             //See breeze documentation for {@link http://www.breezejs.com/documentation/customizing-ajax ajaxadapter}
-            return interceptor.origAjaxFn(settings);
+            return interceptor.callableOrigAjaxFn(settings);
         };
     }
 
