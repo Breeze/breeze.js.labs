@@ -8,7 +8,7 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Steve Schmidt
- * Version: 1.0.5
+ * Version: 1.0.6
  * 
  * Special parameters:
  *  $method: ‘POST’ or ‘GET’ (the default)
