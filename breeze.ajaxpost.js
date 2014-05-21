@@ -61,7 +61,7 @@
         if (ajaxFunction) {
             ajaxAdapter.ajax = function (settings) {
                 processSettings(settings);
-                return ajaxFunction(settings);
+                return ajaxFunction.call(ajaxAdapter, settings);
             };
         }
     }
