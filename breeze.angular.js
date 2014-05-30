@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Angular Module and "breeze service"
  *
- * v.0.8.4
+ * v.0.8.7
  *
  * The beginnings of a "breeze service" that tells Breeze to
  * - use $q for its promises rather than Q.js
