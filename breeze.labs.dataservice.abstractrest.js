@@ -75,6 +75,7 @@
         _ajaxImpl: undefined, // see initialize()
         _createErrorFromResponse: _createErrorFromResponse,
         _createChangeRequest: _createChangeRequest,
+        _createChangeRequestInterceptor: _createChangeRequestInterceptor,
         _createJsonResultsAdapter: _createJsonResultsAdapter,
         _clientTypeNameToServer: _clientTypeNameToServer,
         _getEntityTypeFromMappingContext: _getEntityTypeFromMappingContext,
@@ -109,11 +110,11 @@
     }
 
     // The default, no-op implementation of a "ChangeRequestInterceptor" ctor 
-    // that can tweak the 'changeRequests' object both as it is built and when it is completed
+    // that can tweak the 'requests' object both as it is built and when it is completed
     // by a concrete DataServiceAdapater.
     //
     // Applications can specify an alternative constructor with a different implementation
-    // enabling them to change aspects of the 'changeRequests' object 
+    // enabling them to change aspects of the 'requests' object 
     // without having to write their own DataService adapters.
     // 
     // Instantiated and called entirely within the 'createChangeRequests' method.
@@ -123,23 +124,23 @@
     // - instantiate an object that implements the methods shown here.
     // - use 'saveBundle' and 'saveContext' captures in those methods.    
     function ChangeRequestInterceptor (saveContext, saveBundle){
-        // Method: getChangeRequest
+        // Method: getRequest
         // Prepare and return the change request for an entity-to-be-saved
         // Called for each entity-to-be-saved
         // Parameters:
-        //    'entity' is the manager's cached entity-to-be-saved 
         //    'request' is the change request as prepared so far, before interception
+        //    'entity' is the manager's cached entity-to-be-saved 
         //    'index' is the index of this entity in the array of original entities-to-be-saved.
         // This interceptor is free to do as it pleases with these inputs
         // but it must return something.
-        this.getChangeRequest = function (entity, request, index){return request;};
+        this.getRequest = function (request, entity, index){return request;};
 
-        // Method: changeRequestsCompleted
-        // Last chance to change anything about the 'changeRequests' object
+        // Method: done
+        // Last chance to change anything about the 'requests' object
         // after it has been built with requests for all of the entities-to-be-saved.
         // Returns void.
-        // Called just before the changeRequests object is posted to the server
-        this.changeRequestsCompleted = function(changeRequests) {};  
+        // Called just before the requests object is posted to the server
+        this.done = function(requests) {};  
     }
 
     function checkForRecomposition(interfaceInitializedArgs) {
@@ -245,6 +246,28 @@
             jrAdapter.clientTypeNameToServer(typeName) : typeName;
     }
 
+    function _createChangeRequest(/* saveContext, entity, index */) {
+        throw new Error("Need a concrete implementation of _createChangeRequest");
+    }
+
+    function _createChangeRequestInterceptor(saveContext, saveBundle){
+        var isFn = breeze.core.isFunction;
+        var CRI = this.ChangeRequestInterceptor;
+        var pre = this.name + " DataServiceAdapter's ChangeRequestInterceptor";
+        var post = " is missing or not a function.";
+        if (isFn(CRI)){
+            var interceptor = new CRI(saveContext, saveBundle);
+            if (!isFn(interceptor.getRequest)) {
+                throw new Error(pre + '.getRequest' + post);
+            }
+            if (!isFn(interceptor.done)) {
+                throw new Error(pre + '.done' + post);
+            }
+            return interceptor;
+        }
+        throw new Error(pre + post);
+    }
+
     // Create error object for both query and save responses.
     // 'context' can help differentiate query and save
     // 'errorEntity' only defined for save response
@@ -266,10 +289,6 @@
             }
 
         });
-    }
-
-    function _createChangeRequest(/* saveContext, entity, index */) {
-        throw new Error("Need a concrete implementation of _createChangeRequest");
     }
 
     function _getEntityTypeFromMappingContext(mappingContext) {
@@ -356,13 +375,14 @@
         var adapter = saveContext.adapter;
         var originalEntities = saveContext.originalEntities = saveBundle.entities;
         saveContext.tempKeys = [];
-        var changeRequestInterceptor = new adapter.ChangeRequestInterceptor(saveContext, saveBundle);
+
+        var changeRequestInterceptor = adapter._createChangeRequestInterceptor(saveContext, saveBundle);
 
         var requests = originalEntities.map(function (entity, index) {
             var request = adapter._createChangeRequest(saveContext, entity, index);
-            return changeRequestInterceptor.getChangeRequest(entity, request, index);
+            return changeRequestInterceptor.getRequest(request, entity, index);
         });
-        changeRequestInterceptor.changeRequestsCompleted(requests);
+        changeRequestInterceptor.done(requests);
         return requests;
     }
 
