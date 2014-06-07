@@ -1,11 +1,11 @@
 ﻿/*
  * Breeze Labs SharePoint 2013 OData DataServiceAdapter
  *
- *  v.0.2.3
+ *  v.0.6.0
  *
  * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
  * 
- * REQUIRES breeze.labs.dataservice.abstractrest.js
+ * REQUIRES breeze.labs.dataservice.abstractrest.js v.0.6.0+
  * 
  * This adapter cannot get metadata from the server and in general one should
  * not do so because such metadata cover much more of than you want and are huge (>1MB)
@@ -15,10 +15,7 @@
  *
  * Typical usage in Angular
  *    // configure breeze to use SharePoint OData service
- *    var dsAdapter = breeze.config.initializeAdapterInstance('dataService', 'SharePointOData', true);
- *
- *    // if using $q for promises ...
- *    dsAdapter.Q = $q; 
+ *    var dsAdapter = breeze.config.initializeAdapterInstance('dataService', 'SharePointOData', true); 
  *
  *    // provide method returning value for the SP OData 'X-RequestDigest' header
  *    dsAdapter.getRequestDigest = function(){return securityService.requestDigest}
@@ -75,7 +72,6 @@
         fn._addToSaveContext = _addToSaveContext;
         fn._createErrorFromResponse = _createErrorFromResponse;
         fn._createJsonResultsAdapter = _createJsonResultsAdapter;
-        fn._createSaveRequest = _createSaveRequest;
         fn._getResponseData = _getResponseData;
         fn._processSavedEntity = _processSavedEntity;
 
@@ -106,7 +102,10 @@
         return 'SP.Data.' + clientTypeName + 'sListItem';
     }
 
-    function _createErrorFromResponse(response, url) {
+    // Create error object for both query and save responses.
+    // 'context' can help differentiate query and save
+    // 'errorEntity' only defined for save response
+    function _createErrorFromResponse(response, url, context, errorEntity) {
         // OData errors can have the message buried very deeply - and nonobviously
         // this code is tricky so be careful changing the response.body parsing.
         var result = new Error();
@@ -116,31 +115,40 @@
         result.statusText = response.statusText;
         result.status = response.status;
 
-        var data = result.data = response.data;
+        setSPODataErrorMessage(result);
+        return result;
+    }
+
+    // TODO: relocate where re-usable?
+    function setSPODataErrorMessage(result){
+        // OData errors can have the message buried very deeply - and nonobviously
+        // Normal MS OData responses have a response.body
+        // SharePoint OData responses have a response.data instead
+        // this code is tricky so be careful changing the response.data parsing.
+        var data = result.data = result.response.data,
+            m, 
+            msg = [], 
+            nextErr;
+
         if (data) {
-            var msg = "", nextErr;
             try {
-                if (typeof (data) === "string") {
+                if (typeof data === "string") {
                     data = result.data = JSON.parse(data);
                 }
                 do {
                     nextErr = data.error || data.innererror;
-                    if (!nextErr) { msg = msg + getMessage(data); }
+                    if (!nextErr) { 
+                        m = data.message || "";
+                        msg.push((typeof m === "string") ? m : m.value); 
+                    }
                     nextErr = nextErr || data.internalexception;
                     data = nextErr;
                 } while (nextErr);
                 if (msg.length > 0) {
-                    result.message = msg;
+                    result.message = msg.join('; ')+'.';
                 }
             } catch (e) { /* carry on */ }
         }
-        return result;
-
-        function getMessage() {
-            var m = data.message || "";
-            return ((typeof (m) === "string") ? m : m.value) + "; ";
-        }
-
     }
 
     function _createJsonResultsAdapter() {
@@ -213,7 +221,7 @@
         }
     }
 
-    function _createSaveRequest(saveContext, entity, index) {
+    function _createChangeRequest(saveContext, entity, index) {
         var adapter = saveContext.adapter;
         var data, rawEntity, request;
         var entityManager = saveContext.entityManager;
@@ -335,7 +343,7 @@
         return response.data && response.data.d; // sharepoint adds a 'd' !?!
     }
 
-    function _processSavedEntity(savedEntity, saveContext, response /*, index*/) {
+    function _processSavedEntity(savedEntity, response /*, saveContext, index*/) {
         var etag = savedEntity && savedEntity.entityAspect && response.getHeaders('ETag');
         if (etag) {
             savedEntity.entityAspect.extraMetadata.etag = etag;

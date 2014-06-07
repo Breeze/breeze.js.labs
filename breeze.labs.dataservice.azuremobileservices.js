@@ -1,20 +1,17 @@
 ﻿/*
  * Breeze Labs Azure Mobile Services DataServiceAdapter
  *
- *  v.0.5.1
+ *  v.0.6.0
  *
  * Registers an Azure Mobile Services DataServiceAdapter with Breeze
  *
- * REQUIRES breeze.labs.dataservice.abstractrest.js
+ * REQUIRES breeze.labs.dataservice.abstractrest.js v.0.6.0+
  *
  * This adapter cannot get metadata from the server because mobile services does not provide metadata.
  *
  * Typical usage in Angular
  *    // configure breeze to use Azure Mobile Services dataservice adapter
  *    var dsAdapter = breeze.config.initializeAdapterInstance('dataService', 'azure-mobile-services', true);
- *
- *    // if using $q for promises ...
- *    dsAdapter.Q = $q;
  *
  *    // provide the mobile services information specific to your app
  *    adapter.mobileServicesInfo = {
@@ -67,8 +64,8 @@
         fn.executeQuery = executeQuery;
 
         fn._createErrorFromResponse = _createErrorFromResponse;
+        fn._createChangeRequest = _createChangeRequest;
         fn._createJsonResultsAdapter = _createJsonResultsAdapter;
-        fn._createSaveRequest = _createSaveRequest;
         fn._createUniqueInstallationId = _createUniqueInstallationId;
         fn._getZumoHeaders = _getZumoHeaders;
 
@@ -78,14 +75,17 @@
     breeze.config.registerAdapter("dataService", ctor);
 
     /////////////////
-    function _createErrorFromResponse(response, url) {
+    // Create error object for both query and save responses.
+    // 'context' can help differentiate query and save
+    // 'errorEntity' only defined for save response
+    function _createErrorFromResponse(response, url, context, errorEntity) {
         var result = new Error();
         result.response = response;
         var data = response.data || {};
         if (url) { result.url = url; }
         result.status =  data.code || response.status || '???';
         result.statusText = response.statusText || result.status;
-        result.message =  data.error || response.message || response.statusText;
+        result.message =  data.error || response.message || response.error || result.statusText;
         return result;
     }
 
@@ -99,14 +99,14 @@
 
         function visitNode(node, mappingContext) {
             // mappingContext.entityType could be set for a queryResult
-            // node.$entityType set when node is from a saveResult (see _processSavedEntity)
+            // node.$entityType set when node is from a change response (see _processSavedEntity)
             var entityType =  mappingContext.entityType || node.$entityType ||
                 dataServiceAdapter._getEntityTypeFromMappingContext(mappingContext);
             return (entityType) ? { entityType: entityType } : {}
         }
     }
 
-    function _createSaveRequest(saveContext, entity, index) {
+    function _createChangeRequest(saveContext, entity, index) {
         var data, rawEntity, request;
         var type = entity.entityType;
         var rn = type.defaultResourceName;
@@ -211,7 +211,7 @@
             params: mappingContext.query.parameters,
             success: querySuccess,
             error: function (response) {
-                deferred.reject(adapter._createErrorFromResponse(response, url));
+                deferred.reject(adapter._createErrorFromResponse(response, url, mappingContext));
             }
         });
         return deferred.promise;
