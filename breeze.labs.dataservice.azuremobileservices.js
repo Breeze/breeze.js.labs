@@ -79,14 +79,15 @@
     // 'context' can help differentiate query and save
     // 'errorEntity' only defined for save response
     function _createErrorFromResponse(response, url, context, errorEntity) {
-        var result = new Error();
-        result.response = response;
+        var err = new Error();
+        err.response = response;
         var data = response.data || {};
-        if (url) { result.url = url; }
-        result.status =  data.code || response.status || '???';
-        result.statusText = response.statusText || result.status;
-        result.message =  data.error || response.message || response.error || result.statusText;
-        return result;
+        if (url) { err.url = url; }
+        err.status =  data.code || response.status || '???';
+        err.statusText = response.statusText || err.status;
+        err.message =  data.error || response.message || response.error || err.statusText;
+        fn._catch
+        return err;
     }
 
     function _createJsonResultsAdapter() {

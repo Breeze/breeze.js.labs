@@ -56,6 +56,9 @@
 
     breeze.AbstractRestDataServiceAdapter = ctor;
 
+    // borrow from the AbstractDataServiceAdapter
+    var abstractDsaProto = breeze.AbstractDataServiceAdapter.prototype;
+
     ctor.prototype = {
 
         // Breeze DataService API
@@ -65,7 +68,7 @@
         saveChanges: saveChanges,
 
         // Configuration API
-        ChangeRequestInterceptor: ChangeRequestInterceptor, // default, no-op ctor
+        ChangeRequestInterceptor: abstractDsaProto.ChangeRequestInterceptor, // default, no-op ctor
         checkForRecomposition: checkForRecomposition,
         saveOnlyOne: false, // true if may only save one entity at a time.
         ignoreDeleteNotFound: true, // true if should ignore a 404 error from a delete
@@ -73,9 +76,9 @@
         // "protected" members available to derived concrete dataservice adapter types
         _addToSaveContext: _addToSaveContext,
         _ajaxImpl: undefined, // see initialize()
+        _catchNoConnectionError: abstractDsaProto._catchNoConnectionError,
         _createErrorFromResponse: _createErrorFromResponse,
         _createChangeRequest: _createChangeRequest,
-        _createChangeRequestInterceptor: _createChangeRequestInterceptor,
         _createJsonResultsAdapter: _createJsonResultsAdapter,
         _clientTypeNameToServer: _clientTypeNameToServer,
         _getEntityTypeFromMappingContext: _getEntityTypeFromMappingContext,
@@ -107,40 +110,6 @@
         if (!adapter.jsonResultsAdapter) {
             adapter.jsonResultsAdapter = adapter._createJsonResultsAdapter();
         }
-    }
-
-    // The default, no-op implementation of a "ChangeRequestInterceptor" ctor 
-    // that can tweak the 'requests' object both as it is built and when it is completed
-    // by a concrete DataServiceAdapater.
-    //
-    // Applications can specify an alternative constructor with a different implementation
-    // enabling them to change aspects of the 'requests' object 
-    // without having to write their own DataService adapters.
-    // 
-    // Instantiated and called entirely within the 'createChangeRequests' method.
-    //
-    // Applications that define an overriding interceptor should follow this pattern.
-    // - accept the 'saveContext' and 'saveBundle' and as the first two parameters.
-    // - instantiate an object that implements the methods shown here.
-    // - use 'saveBundle' and 'saveContext' captures in those methods.    
-    function ChangeRequestInterceptor (saveContext, saveBundle){
-        // Method: getRequest
-        // Prepare and return the change request for an entity-to-be-saved
-        // Called for each entity-to-be-saved
-        // Parameters:
-        //    'request' is the change request as prepared so far, before interception
-        //    'entity' is the manager's cached entity-to-be-saved 
-        //    'index' is the index of this entity in the array of original entities-to-be-saved.
-        // This interceptor is free to do as it pleases with these inputs
-        // but it must return something.
-        this.getRequest = function (request, entity, index){return request;};
-
-        // Method: done
-        // Last chance to change anything about the 'requests' object
-        // after it has been built with requests for all of the entities-to-be-saved.
-        // Returns void.
-        // Called just before the requests object is posted to the server
-        this.done = function(requests) {};  
     }
 
     function checkForRecomposition(interfaceInitializedArgs) {
@@ -250,35 +219,18 @@
         throw new Error("Need a concrete implementation of _createChangeRequest");
     }
 
-    function _createChangeRequestInterceptor(saveContext, saveBundle){
-        var isFn = breeze.core.isFunction;
-        var CRI = this.ChangeRequestInterceptor;
-        var pre = this.name + " DataServiceAdapter's ChangeRequestInterceptor";
-        var post = " is missing or not a function.";
-        if (isFn(CRI)){
-            var interceptor = new CRI(saveContext, saveBundle);
-            if (!isFn(interceptor.getRequest)) {
-                throw new Error(pre + '.getRequest' + post);
-            }
-            if (!isFn(interceptor.done)) {
-                throw new Error(pre + '.done' + post);
-            }
-            return interceptor;
-        }
-        throw new Error(pre + post);
-    }
-
     // Create error object for both query and save responses.
     // 'context' can help differentiate query and save
     // 'errorEntity' only defined for save response
     function _createErrorFromResponse(response, url, context, errorEntity) {
-        var result = new Error();
-        result.response = response;
-        if (url) { result.url = url; }
-        result.status =  response.status || '???';
-        result.statusText = response.statusText;
-        result.message =  response.message || response.error || response.statusText;
-        return result;
+        var err = new Error();
+        err.response = response;
+        if (url) { err.url = url; }
+        err.status =  response.status || '???';
+        err.statusText = response.statusText;
+        err.message =  response.message || response.error || response.statusText;
+        fn_.catchNoConnectionError(err);
+        return err;
     }
 
     function _createJsonResultsAdapter(/*dataServiceAdapter*/) {
@@ -376,7 +328,8 @@
         var originalEntities = saveContext.originalEntities = saveBundle.entities;
         saveContext.tempKeys = [];
 
-        var changeRequestInterceptor = adapter._createChangeRequestInterceptor(saveContext, saveBundle);
+        var changeRequestInterceptor = 
+            abstractDsaProto._createChangeRequestInterceptor(saveContext, saveBundle);
 
         var requests = originalEntities.map(function (entity, index) {
             var request = adapter._createChangeRequest(saveContext, entity, index);
