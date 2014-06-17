@@ -66,15 +66,15 @@
 
     function typeInitialize() {
         // Delay setting the prototype until we're sure AbstractRestDataServiceAdapter is loaded
-        var fn = breeze.AbstractRestDataServiceAdapter.prototype;
-        fn = breeze.core.extend(ctor.prototype, fn);
-        fn.executeQuery = executeQuery;
-        fn._addToSaveContext = _addToSaveContext;
-        fn._createChangeRequest = _createChangeRequest;
-        fn._createErrorFromResponse = _createErrorFromResponse;
-        fn._createJsonResultsAdapter = _createJsonResultsAdapter;
-        fn._getResponseData = _getResponseData;
-        fn._processSavedEntity = _processSavedEntity;
+        var proto = breeze.AbstractRestDataServiceAdapter.prototype;
+        proto = breeze.core.extend(ctor.prototype, proto);
+        proto.executeQuery = executeQuery;
+        proto._addToSaveContext = _addToSaveContext;
+        proto._createChangeRequest = _createChangeRequest;
+        proto._createErrorFromResponse = _createErrorFromResponse;
+        proto._createJsonResultsAdapter = _createJsonResultsAdapter;
+        proto._getResponseData = _getResponseData;
+        proto._processSavedEntity = _processSavedEntity;
 
         this.initialize(); // the revised initialize()
     }
@@ -195,7 +195,7 @@
         err.status = response.status;
 
         setSPODataErrorMessage(err);
-        fn_.catchNoConnectionError(err);
+        proto._catchNoConnectionError(err);
         return err;
     }
 

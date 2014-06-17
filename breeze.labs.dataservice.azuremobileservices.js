@@ -58,16 +58,16 @@
 
     function typeInitialize() {
         // Delay setting the prototype until we're sure AbstractRestDataServiceAdapter is loaded
-        var fn = breeze.AbstractRestDataServiceAdapter.prototype;
-        fn = breeze.core.extend(ctor.prototype, fn);
+        var proto = breeze.AbstractRestDataServiceAdapter.prototype;
+        proto = breeze.core.extend(ctor.prototype, proto);
 
-        fn.executeQuery = executeQuery;
+        proto.executeQuery = executeQuery;
 
-        fn._createErrorFromResponse = _createErrorFromResponse;
-        fn._createChangeRequest = _createChangeRequest;
-        fn._createJsonResultsAdapter = _createJsonResultsAdapter;
-        fn._createUniqueInstallationId = _createUniqueInstallationId;
-        fn._getZumoHeaders = _getZumoHeaders;
+        proto._createErrorFromResponse = _createErrorFromResponse;
+        proto._createChangeRequest = _createChangeRequest;
+        proto._createJsonResultsAdapter = _createJsonResultsAdapter;
+        proto._createUniqueInstallationId = _createUniqueInstallationId;
+        proto._getZumoHeaders = _getZumoHeaders;
 
         this.initialize(); // the revised initialize()
     }
@@ -86,7 +86,7 @@
         err.status =  data.code || response.status || '???';
         err.statusText = response.statusText || err.status;
         err.message =  data.error || response.message || response.error || err.statusText;
-        fn._catch
+        proto._catchNoConnectionError(err);
         return err;
     }
 
