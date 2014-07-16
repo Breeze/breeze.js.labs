@@ -4,7 +4,7 @@
  * Use, reproduction, distribution, and modification of this code is subject to the terms and
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
- * Author: Ward Bell
+ * Author: Ward Bell, Bram Whillock
  * Version: 1.0.7
  * --------------------------------------------------------------------------------
  * Adds metadataHelper extensions to Breeze
@@ -105,7 +105,7 @@
     // While unlikely, breeze should offer a way to remove a resource name for a type.
     function addTypeNameAsResource(store, type) {
         if (!type.isComplexType) {
-            store.setEntityTypeForResourceName(type.shortName, type);
+            store.setEntityTypeForResourceName(type.defaultResourceName || type.shortName, type);
         }
     }
 
@@ -231,6 +231,9 @@
         var dps = typeDef.dataProperties;
         for (key in dps) {
             prop = dps[key];
+            if (prop instanceof String || (typeof(prop) === "string")) {
+                prop = dps[key] = {type: prop};
+            }
             this.replaceDataPropertyAliases(prop, key);
             if (prop.complexTypeName && prop.complexTypeName.indexOf(":#") === -1) {
                 // if complexTypeName is unqualified, suffix with the entity's own namespace
@@ -317,6 +320,39 @@
         delete obj[oldName];
     }
 
+    function translateTypeShortcut(obj, typeKey) {
+        if ( typeof(obj[typeKey]) === 'string' ) {
+            var type = undefined;
+            switch( obj[typeKey] ) {
+                case 'string':
+                    type = DT.String;
+                    break;
+                case 'uuid':
+                case 'uid':
+                    type = DT.String;
+                    obj.isPartOfKey = true;
+                    break;
+                case 'id':
+                    obj.isPartOfKey = true;
+                case 'int':
+                    type = DT.Int32;
+                    break;
+                case 'bool':
+                    type = DT.Boolean;
+                    break;
+                case 'float':
+                    type = DT.Decimal;
+                    break;
+                case 'date':
+                    type = DT.DateTime;
+                    break;
+                default:
+                    throw "translateTypeShortcut doesn't know what to do with string: " + obj[typeKey];
+            }
+            obj[typeKey] = type;
+        }
+    }
+
     /*
      *  Support common aliases in DataProperty attributes to reduce tedium
      *  type -> dataType
@@ -324,6 +360,8 @@
      *  null -> isNullable
      *  max  -> maxLength
      *  default -> defaultValue
+     *  hasMany -> isScalar[false]
+     *  key -> isPartofKey
      */
     function replaceDataPropertyAliases(prop, propertyName) {
         for (var key in prop) {
@@ -331,6 +369,7 @@
                 var keyLc = key.toLowerCase();
                 if (keyLc === 'type') {
                     renameAttrib(prop, key, 'dataType');
+                    translateTypeShortcut(prop,'dataType');
                 } else if (keyLc === 'complex' || keyLc === 'complextype') {
                     renameAttrib(prop, key, 'complexTypeName');
                 } else if (keyLc === 'max' && (prop.dataType === undefined || prop.dataType === DT.String)) {
