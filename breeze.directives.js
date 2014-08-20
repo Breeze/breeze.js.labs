@@ -1,7 +1,6 @@
 ﻿/*
  * Breeze Labs: Breeze Directives for Angular Apps
  *
- *  v.1.3.7
  *
  *  Usage:
  *     Make this module a dependency of your app module:
@@ -248,7 +247,13 @@
 
         function getEntityAspectFromEntityPath(info) {
             return function () {
-                try { return info.scope.$eval(info.entityPath)['entityAspect']; }
+                try {
+                    var entity = info.scope.$eval(info.entityPath);
+                    if (!entity.entityAspect) {
+                        return info.scope.$eval(info.entityPath)['complexAspect'].getEntityAspect();
+                    }
+                    return info.scope.$eval(info.entityPath)['entityAspect'];
+                }
                 catch (_) { return undefined; }
             }
         }
@@ -297,6 +302,8 @@
             var required = {};
             type.custom.required = required;
             var props = type.getProperties();
+            var childProps = getComplexChildProperties(props);
+            props = props.concat(childProps);
             props.forEach(function (prop) {
                 var vals = prop.validators;
                 for (var i = vals.length; i--;) {
@@ -309,6 +316,18 @@
                 }
             });
             return required;
+        }
+
+        function getComplexChildProperties(props) {
+            var children = [];
+
+            props.forEach(function (prop) {
+                if (prop.isComplexProperty) {
+                    children = children.concat(prop.dataType.getProperties());
+                }
+            });
+
+            return children;
         }
 
         function setEntityAndPropertyPaths(info, modelPath, validationPath) {
