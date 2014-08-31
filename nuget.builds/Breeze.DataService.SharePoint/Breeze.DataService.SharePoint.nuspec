@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.DataService.SharePoint</id>
-        <version>0.2.5</version>
+        <version>0.3.0</version>
         <title>Breeze Labs: SharePoint 2013 OData DataServiceAdapter</title>
         <authors>Ward Bell,Andrew Connell</authors>
         <owners>Ward Bell</owners>
@@ -16,7 +16,11 @@
         <language>en-US</language>
         <tags>breeze labs sharepoint client</tags>
         <dependencies>
-            <dependency id="Breeze.Client" version="[1.4.9, ]" />
+            <dependency id="Breeze.Client" version="[1.5.0, ]" />
         </dependencies>
     </metadata>
+    <files>
+        <file src="content\Scripts\breeze.labs.dataservice.abstractrest.js" target="content\Scripts\breeze.labs.dataservice.abstractrest.js" />
+        <file src="content\Scripts\breeze.labs.dataservice.sharepoint.js" target="content\Scripts\breeze.labs.dataservice.sharepoint.js" />
+    </files>
 </package>

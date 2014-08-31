@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Angular.SharePoint</id>
-        <version>0.8.4</version>
+        <version>0.9.0</version>
         <title>Breeze Labs: Breeze + Angular for SharePoint 2013</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
@@ -16,10 +16,9 @@
         <language>en-US</language>
         <tags>breeze labs angular sharepoint client</tags>
         <dependencies>
-            <dependency id="Breeze.Angular" version="[0.8.3, ]" />
-			<dependency id="Breeze.Client" version="[1.4.9, ]" />
-            <dependency id="Breeze.DataService.SharePoint" version="[0.2.3, ]" />
-		    <dependency id="Breeze.Metadata.Helper" version="[1.0.5, ]" />
+            <dependency id="Breeze.Angular" version="[1.0.0, ]" />
+            <dependency id="Breeze.DataService.SharePoint" version="[0.3.0, ]" />
+            <dependency id="Breeze.Metadata.Helper" version="[1.0.8, ]" />
         </dependencies>
     </metadata>
     <files />
