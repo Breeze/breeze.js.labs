@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs: Breeze Directives for Angular Apps
  *
- *  v.1.3.8
+ *  v.1.3.9
  *
  *  Usage:
  *     Make this module a dependency of your app module:
@@ -53,7 +53,7 @@
                 
                 function equivalenceFormatter(value){
                    var viewValue = ngModelCtrl.$viewValue // could have used 'elm.val()'
-                   return (value === +viewValue) ? viewValue : value;
+                   return (+value === +viewValue) ? viewValue : value;
                 }
             }
         };
