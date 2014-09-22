@@ -51,9 +51,9 @@
                 if (attr.type === 'radio' || attr.type === 'checkbox') return;
                 ngModelCtrl.$formatters.push(equivalenceFormatter);
                 
-                function equivalenceFormatter(value){
+                function equivalenceFormatter(modelValue){ 
                    var viewValue = ngModelCtrl.$viewValue // could have used 'elm.val()'
-                   return (+value === +viewValue) ? viewValue : value;
+                   return (+viewValue === +modelValue) ? viewValue : modelValue;
                 }
             }
         };
