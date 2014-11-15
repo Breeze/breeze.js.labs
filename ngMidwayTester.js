@@ -39,8 +39,12 @@
                 var _path = $delegate.path();
                 $delegate.path = function (path) {
                     if (path) {
-                        _path = path;
-                        $rootScope.$broadcast('$locationChangeSuccess', path);
+                        // sometimes the broadcast triggers a new request for same path
+                        // added this conditional to mitigate risk of this infinite loop
+                        if (_path !== path) {
+                            _path = path;
+                            $rootScope.$broadcast('$locationChangeSuccess', path);                           
+                        }
                         return this;
                     }
                     else {
