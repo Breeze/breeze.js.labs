@@ -222,11 +222,14 @@
          * @param {function} [callback] The given callback to fire once the view has been fully loaded
          * @method visit
          */
-        visit: function (path, callback) {
-            this.rootScope().__view_status = ++$viewCounter;
-            this.until(function () {
-                return parseInt($terminalElement.attr('status')) >= $viewCounter;
-            }, callback || noop);
+        visit : function(path, callback) {
+          this.rootScope().__view_status = ++$viewCounter;
+          this.until(function() {
+              return parseInt($terminalElement.attr('status')) >= $viewCounter;
+            }, function(){ 
+              // give it another tick to settle
+              setTimeout(callback || noop, 0)
+            });
 
             var $location = this.inject('$location');
             this.apply(function () {
