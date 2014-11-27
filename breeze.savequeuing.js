@@ -25,6 +25,9 @@
  * Calling "enableSaveQueuing(true)" adds a new _saveQueuing object
  * to the manager instance.
  *
+ * See DocCode:saveQueuingTests.js
+ * https://github.com/Breeze/breeze.js.samples/blob/master/net/DocCode/DocCode/tests/saveQueuingTests.js
+ *
  * !!! Use with caution !!!
  * "Save Queuing" is recommended only in simple "auto-save" scenarios wherein
  * users make rapid changes and the UI saves immediately as they do so.
