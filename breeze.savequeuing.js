@@ -78,6 +78,13 @@
         }
     };
 
+    /**
+    Returns whether a save is in progress.
+    @return {boolean} True if a save is in progress.
+    **/
+    EntityManager.prototype.isSaving = function () {
+        return (this._saveQueuing && this._saveQueuing.isSaving);
+    };
 
     var SaveQueuing = function (entityManager) {
         this.entityManager = entityManager;
