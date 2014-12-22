@@ -8,13 +8,24 @@
  * Version: 2.0.3
  * --------------------------------------------------------------------------------
  * Adds "Save Queuing" capability to new EntityManagers
- * "Save Queuing" automatically queues and defers an EntityManager.saveChanges call
- * when another save is in progress for that manager.
  *
- * Without "Save Queuing", an EntityManager will throw an exception when
- * saveChanges is called while another save is in progress.
+ * Save Queuing automatically queues and defers an EntityManager.saveChanges call
+ * when another save is in progress for that manager and the server has not yet responded.
+ * This feature is helpful when your app needs to allow rapid, continuous changes
+ * to entities that may be in the process of being saved.
  *
- * "Save Queuing" is experimental. It may become part of BreezeJS in future
+ * Without "Save Queuing", an EntityManager will throw an exception
+ * when you call saveChanges for an entity which is currently being saved.
+ *
+ * !!! Use with caution !!!
+ * It is usually better to disable user input while a save is in progress.
+ * Save Queuing may be appropriate for simple "auto-save" scenarios
+ * when the save latency is "short" (under a few seconds).
+ *
+ * Save Queuing is NOT intended for occassionally disconnected or offline scenarios.
+ *
+ * Save Queuing is experimental. It will not become a part of BreezeJS core
+ * but might become an official Breeze plugin in future
  * although not necessarily in this form or with this API
  *
  * Must call EntityManager.enableSaveQueuing(true) to turn it on;
@@ -28,20 +39,16 @@
  * See DocCode:saveQueuingTests.js
  * https://github.com/Breeze/breeze.js.samples/blob/master/net/DocCode/DocCode/tests/saveQueuingTests.js
  *
- * !!! Use with caution !!!
- * "Save Queuing" is recommended only in simple "auto-save" scenarios wherein
- * users make rapid changes and the UI saves immediately as they do so.
- * It is usually better (and safer) to disable save in the UI
- * while waiting for a prior save to complete
- *
  * LIMITATIONS
- * - Can't queue save options
  * - Can't handle changes to the primary key (dangerous in any case)
  * - Assumes promises. Does not support the (deprecated) success and fail callbacks
  * - Does not queue saveOptions. The first one is re-used for all queued saves.
- * - The saveResult is the saveResult of the LAST completed save
  * - Does not deal with export/import of entities while save is inflight
  * - Does not deal with rejectChanges while save is in flight
+ * - Does not support parallel saves even when the change-sets are independent.
+ *   The native saveChanges allows such saves.
+ *   SaveQueuing does not; too complex and doesn't fit the primary scenario anyway.
+ * - The resolved saveResult is the saveResult of the last completed save
  * - A queued save that would have succeeded if saved immediately
  *   will fail if subsequent change makes it invalid before
  *   before it can actually be saved
