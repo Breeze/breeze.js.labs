@@ -5,7 +5,7 @@
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
  * Author: Ward Bell
- * Version: 2.0.3
+ * Version: 2.0.4
  * --------------------------------------------------------------------------------
  * Adds "Save Queuing" capability to new EntityManagers
  *
@@ -49,11 +49,11 @@
  *   The native saveChanges allows such saves.
  *   SaveQueuing does not; too complex and doesn't fit the primary scenario anyway.
  * - The resolved saveResult is the saveResult of the last completed save
- * - A queued save that would have succeeded if saved immediately
- *   will fail if subsequent change makes it invalid before
- *   before it can actually be saved
  * - A queued save that might have succeeded if saved immediately
  *   may fail because the server no longer accepts it later
+ * - Prior to Breeze v.1.5.3, a queued save that might have succeeded
+ *   if saved immediately will fail if subsequently attempt to save
+ *   an invalid entity. Can detect and circumvent after v.1.5.3.
  *
  * All members of EntityManager._saveQueuing are internal;
  * touch them at your own risk.
@@ -80,6 +80,11 @@
    * Enable (default) or disable "Save Queuing" for this EntityManager
   **/
   EntityManager.prototype.enableSaveQueuing = enableSaveQueuing;
+
+  //TODO: remove after breeze.v.1.5.3 when this method will be defined
+  if (!EntityManager.prototype.saveChangesValidateOnClient) {
+      EntityManager.prototype.saveChangesValidateOnClient = function() { return null; };
+  }
 
   function enableSaveQueuing(enable) {
     var em = this; // `this` EntityManager
@@ -137,15 +142,30 @@
   SaveQueuing.prototype.saveSucceeded = saveSucceeded;
   SaveQueuing.prototype.saveFailed = saveFailed;
 
+  function getSavedNothingResult() {
+    return { entities: [], keyMappings: [] };
+  }
+
   function queueSaveChanges(entities) {
     var self = this; // `this` is a SaveQueuing
+    var em = self.entityManager;
+
+    var changes = entities || em.getChanges();
+    if (changes.length === 0) {
+      return breeze.Q.resolve(getSavedNothingResult());
+    }
+
+    var valError = em.saveChangesValidateOnClient(changes);
+    if (valError){
+      return breeze.Q.reject(valError);
+    }
+
     var saveMemo = self.nextSaveMemo || (self.nextSaveMemo = new SaveMemo());
-    memoizeChanges(entities);
+    memoizeChanges();
     var deferred = self.nextSaveDeferred || (self.nextSaveDeferred = breeze.Q.defer());
     return deferred.promise;
 
     function memoizeChanges() {
-      var changes = entities || self.entityManager.getChanges();
       if (changes.length === 0) { return; }
       var queuedChanges = saveMemo.queuedChanges;
       changes.forEach(function (e) {
@@ -213,8 +233,7 @@
         self.activeSaveMemo = nextSaveMemo;
         self.saveChanges(queuedChanges);
       } else if (nextSaveDeferred) {
-          var nothingToSaveResult = { entities: [], keyMappings: [] };
-          nextSaveDeferred.resolve(nothingToSaveResult);
+          nextSaveDeferred.resolve(getSavedNothingResult());
       }
     }
 
