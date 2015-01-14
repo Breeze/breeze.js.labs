@@ -59,9 +59,9 @@
  * touch them at your own risk.
  */
 //#endregion
-(function (definition, window) {
-  if (window.breeze) {
-    definition(window.breeze);
+(function (definition) {
+  if (typeof breeze === "object") {
+    definition(breeze);
   } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
     // CommonJS or Node
     var b = require('breeze');
@@ -443,4 +443,4 @@
     }
   }
 
-}, this));
+}));
