@@ -71,6 +71,12 @@
 	function getErrorMessage(error) {
 		var msg = error.message;
 		var entityErrors = error.entityErrors;
+
+        // Save queuing wraps the error and has the concrete error in the innerError property.
+		if (!entityErrors && error.innerError) {
+		    entityErrors = error.innerError.entityErrors;
+        }
+
 		if (entityErrors && entityErrors.length) {
 			service.reviewServerErrors(entityErrors);
 			return getValidationMessages(entityErrors);
