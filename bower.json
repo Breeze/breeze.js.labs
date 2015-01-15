@@ -36,6 +36,6 @@
     "b00_breeze.modelLibrary.new-backingstore.js",
     "breeze.ajaxrestinterceptor.js",
     "breeze.to$q.shim.js",
-    "ngMidwayTester.js",
+    "ngMidwayTester.js"
     ]
 }
