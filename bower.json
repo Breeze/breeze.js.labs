@@ -27,7 +27,6 @@
     ".npmignore",
     "LICENSE",
     "package.json",
-    "README.md",
 
     "b00_breeze.modelLibrary.new-backingstore.js",
     "breeze.angular.js",
