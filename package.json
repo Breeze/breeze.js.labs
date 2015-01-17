@@ -1,7 +1,7 @@
 {
   "name": "breeze-client-labs",
-  "version": "1.5.2-pre.1",
-  "description": "Breeze is a JavaScript library that helps you manage data in rich client applications. If you store data in a database, query and save those data as complex object graphs, and share these graphs across multiple screens of your JavaScript client, Breeze is",
+  "version": "1.5.2",
+  "description": "Breeze Labs are extensions and utilities for Breeze.js client apps that are not part of core breeze.",
   "keywords": [
     "breeze",
     "javascript",
