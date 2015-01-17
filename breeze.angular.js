@@ -1,5 +1,14 @@
 ﻿/*
- * Breeze Angular Module and "breeze service"
+ * Breeze Angular Module and "breeze" service
+ *
+ * DEPRECATED! RELOCATED!
+ *
+ * "breeze.angular" was promoted from Breeze Labs
+ * to Breeze core where it is now the adapter named  "breeze.bridge.angular.js"
+ * The source code is now in a different github repo at
+ * https://github.com/Breeze/breeze.js/blob/master/src/breeze.bridge.angular.js
+ *
+ * ============================================
  *
  * v.0.9.0
  *

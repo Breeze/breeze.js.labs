@@ -7,4 +7,8 @@ See the [**Breeze Labs documentation**](http://www.breezejs.com/documentation/wh
 
 To install with bower:
 
-```bower install breeze.js.labs```
+```bower install breeze-client-labs```
+
+To install with npm:
+
+```npm install breeze-client-labs```
