@@ -102,10 +102,16 @@
         return directive;
 
         function link(scope, element, attrs) {
+            var modelPath = attrs.ngModel;
+            if (!modelPath) {
+                // Special handling for binding of Telerik Kendo UI controls
+                modelPath = attrs.kNgModel;
+            }
+
             // get validation info for bound element and entity property
             var info = validateInfo.create(
                 scope,
-                attrs.ngModel,
+                modelPath,
                 attrs.zValidate);
 
             if (!info.getValErrs) { return; } // can't do anything w/o this method
