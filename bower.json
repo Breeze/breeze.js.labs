@@ -1,6 +1,6 @@
 {
   "name": "breeze-client-labs",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "Breeze Labs is a collection of JavaScript libraries that assist development of Breeze-based applications. They are not part of breeze core. They are often experimental. We (IdeaBlade) offer them to you *as is* with no promise of support and they have a higher risk of breaking changes. Please visit the Breeze Labs github for details.",
   "keywords": [
     "breeze",
