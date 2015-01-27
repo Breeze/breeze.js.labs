@@ -277,7 +277,7 @@
                 } else {
                     fkName = nav.inverse ?
                        nav.inverse.foreignKeyNames[0] :
-                       nav.inverseForeignKeyNames[0];
+                       nav.invForeignKeyNames[0];
                     if (!fkName) { throw new Error("No inverse keys"); }
                     fn = function (entity) {
                         var vals = [];
