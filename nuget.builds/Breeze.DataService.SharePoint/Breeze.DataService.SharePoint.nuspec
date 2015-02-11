@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.DataService.SharePoint</id>
-        <version>0.3.2</version>
+        <version>0.3.3</version>
         <title>Breeze Labs: SharePoint 2013 OData DataServiceAdapter</title>
         <authors>Ward Bell,Andrew Connell</authors>
         <owners>Ward Bell</owners>
@@ -12,7 +12,7 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>A Breeze DataServiceAdapter for SharePoint 2013 apps</description>
         <summary>A Breeze DataServiceAdapter for SharePoint 2013 apps</summary>
-        <copyright>Copyright © 2014 IdeaBlade</copyright>
+        <copyright>Copyright © 2015 IdeaBlade</copyright>
         <language>en-US</language>
         <tags>breeze labs sharepoint client</tags>
         <dependencies>
