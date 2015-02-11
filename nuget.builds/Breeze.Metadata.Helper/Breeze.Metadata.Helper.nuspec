@@ -12,7 +12,7 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Makes it easier to code your own Breeze metadata in JavaScript. See the Breeze documentation starting at http://www.breezejs.com/breeze-labs/breezemetadata-helperjs</description>
         <summary>Helps you write Breeze metadata in JavaScript</summary>
-        <copyright>Copyright © 2014 IdeaBlade</copyright>
+        <copyright>Copyright © 2015 IdeaBlade</copyright>
         <language>en-US</language>
         <tags>breeze labs angular</tags>
         <dependencies>

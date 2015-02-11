@@ -12,7 +12,7 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Get AngularJS directives and related assets to support your Breeze+Angular applications. Most prominent is the zValidate directive that exposes entity validation errors to the UI and displays a required indicator next to input controls bound to a property with a "required" validator.</description>
         <summary>AngularJS directives for Breeze/Angular apps</summary>
-        <copyright>Copyright © 2014 IdeaBlade</copyright>
+        <copyright>Copyright © 2015 IdeaBlade</copyright>
         <language>en-US</language>
         <tags>breeze labs angular directive spa javascript client</tags>
     </metadata>
