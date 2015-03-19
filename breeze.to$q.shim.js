@@ -4,20 +4,21 @@
 // But it may take time to remove to$q from an existing app.
 // Remove this shim when you have replaced all references to "to$q" with "then" in your app.
 
-(function (definition, window) {
-    if (window.breeze) {
-        definition(window.breeze);
+(function (definition) {
+    if (typeof breeze === "object") {
+        definition(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node
         var b = require('breeze');
         definition(b);
-    } else if (typeof define === "function" && define["amd"] && !window.breeze) {
-        // Requirejs / AMD 
+    } else if (typeof define === "function" && define["amd"]) {
+        // Requirejs / AMD
         define(['breeze'], definition);
     } else {
         throw new Error("Can't find breeze");
     }
 }(function (breeze) {
+    'use strict';
 
     // EntityManager
     var proto = breeze.EntityManager.prototype;
@@ -69,4 +70,4 @@
         };
         return promise;
     }
-}, this));
+}));

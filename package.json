@@ -1,0 +1,38 @@
+{
+  "name": "breeze-client-labs",
+  "version": "1.5.3",
+  "description": "Breeze Labs are extensions and utilities for Breeze.js client apps that are not part of core breeze.",
+  "keywords": [
+    "breeze",
+    "javascript",
+    "framework"
+  ],
+  "homepage": "http://www.getbreezenow.com/documentation/what-are-breeze-labs",
+  "bugs": {
+    "url": "http://stackoverflow.com/questions/tagged/breeze"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "IdeaBlade",
+    "url": "http://www.ideablade.com/"
+  },
+  "main": "breeze.debug.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Breeze/breeze.js.labs.git"
+  },
+  "maintainers": [
+    {
+      "name": "ideablade",
+      "email": "BreezeClub@ideablade.com"
+    },
+    {
+      "name": "jtraband",
+      "email": "jayt@ideablade.com"
+    },
+    {
+      "name": "wardbell",
+      "email": "wardb@ideablade.com"
+    }
+  ]
+}

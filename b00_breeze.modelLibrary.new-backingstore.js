@@ -4,7 +4,7 @@
  *
  * Based on b00_breeze.modelLibrary.backingstore.js
  *
- * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.
+ * Copyright 2015 IdeaBlade, Inc.  All Rights Reserved.
  * Use, reproduction, distribution, and modification of this code is subject to the terms and
  * conditions of the IdeaBlade Breeze license, available at http://www.breezejs.com/license
  *
@@ -276,7 +276,7 @@
         var propDescr = Object.getOwnPropertyDescriptor(proto, propName);
         // if not configurable; we can't touch it - so leave.
         if (!propDescr.configurable) return;
-        // if a data descriptor - don't wrap it 
+        // if a data descriptor - don't wrap it
         // Treat it is a static ReadOnly property - i.e. defined on every instance of the type with the same value.
         // No safe alternative even if writable as it could be made non-writable at any time.
         if (propDescr.value) return;

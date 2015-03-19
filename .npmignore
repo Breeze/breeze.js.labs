@@ -1,0 +1,10 @@
+nuget.builds
+.gitignore
+.npmignore
+b00_breeze.modelLibrary.new-backingstore.js
+bower.json
+breeze.angular.js
+breeze.ajaxrestinterceptor.js
+breeze.to$q.shim.js
+LICENSE
+ngMidwayTester.js
