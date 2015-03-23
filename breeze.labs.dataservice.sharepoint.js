@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs SharePoint 2013 OData DataServiceAdapter
  *
- *  v.0.6.1
+ *  v.0.6.2
  *
  * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
  *
@@ -100,7 +100,7 @@
     }
 
     function clientTypeNameToServerDefault(clientTypeName) {
-        return 'SP.Data.' + clientTypeName + 'sListItem';
+        return 'SP.Data.' + clientTypeName + 'ListItem';
     }
 
     function _createChangeRequest(saveContext, entity, index) {
@@ -356,7 +356,7 @@
 
     function serverTypeNameToClientDefault(serverTypeName) {
         // strip off leading 'SP.Data.' and trailing 'sListItem'
-        var re = /^(SP\.Data.)(.*)(sListItem)$/;
+        var re = /^(SP\.Data.)(.*)(ListItem)$/;
         var typeName = serverTypeName.replace(re, '$2');
 
         return breeze.MetadataStore.normalizeTypeName(typeName);
