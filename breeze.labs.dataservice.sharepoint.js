@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs SharePoint 2013 OData DataServiceAdapter
  *
- *  v.0.6.2
+ *  v.0.6.3
  *
  * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
  *
@@ -19,6 +19,9 @@
  *
  *    // provide method returning value for the SP OData 'X-RequestDigest' header
  *    dsAdapter.getRequestDigest = function(){return securityService.requestDigest}
+ *    // note that the digest is NOT required if you are authenticating using OAuth tokens
+ *    //  as the digest is only needed to protect against XSFR that involves cookies...
+ *    //  when using OAuth tokens for authentication, cookies aren't used and thus XSFR is moot
  *
  * This adapter has its own JsonResultsAdapter which you could replace.
  *
@@ -114,11 +117,14 @@
         var state = aspect.entityState;
         var type = entity.entityType;
         var headers = {
-            'Accept': 'application/json;odata=verbose',
-            'Content-Type': 'application/json;odata=verbose',
-            'DataServiceVersion': '2.0', // or get MIME type error
-            'X-RequestDigest': saveContext.requestDigest
+          'Accept': 'application/json;odata=verbose',
+          'Content-Type': 'application/json;odata=verbose',
+          'DataServiceVersion': '2.0' // or get MIME type error
         };
+        // conditionally include the digest if provided
+        if (saveContext.requestDigest) {
+            headers['X-RequestDigest'] = saveContext.requestDigest;
+        }
 
         if (state.isAdded()) {
             var rn = type.defaultResourceName;
@@ -355,7 +361,7 @@
     }
 
     function serverTypeNameToClientDefault(serverTypeName) {
-        // strip off leading 'SP.Data.' and trailing 'sListItem'
+        // strip off leading 'SP.Data.' and trailing 'ListItem'
         var re = /^(SP\.Data.)(.*)(ListItem)$/;
         var typeName = serverTypeName.replace(re, '$2');
 

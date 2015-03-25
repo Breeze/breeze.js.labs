@@ -29,6 +29,7 @@ var dsAdapter = breeze.config.initializeAdapterInstance('dataService', 'SharePoi
 
 // tell breeze how to get the security validation token for
 //  HTTP POST & DELETE calls
+// NOTE: Setting the request digest is not required when using OAuth tokens for authentication. The request digest is used when cookies are used for authentication to protect against XSRF. When OAuth tokens are used, there is no XSRF issue as there are no cookies. Version 0.6.3 of the adapter added conditional logic to omit the `X-RequestDigest` header in the HTTP request if this method is not set.
 dsAdapter.getRequestDigest = function () {
   return jQuery('#__REQUESTDIGEST').val();
 };
