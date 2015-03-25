@@ -21,6 +21,9 @@
     "url": "https://github.com/Breeze/breeze.js.labs.git"
   },
   "main": [],
+  "dependencies": {
+    "breeze-client": "^1.5.3"
+  },
   "ignore": [
     "nuget.builds",
     ".gitignore",
