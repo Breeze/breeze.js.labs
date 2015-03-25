@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs SharePoint 2013 OData DataServiceAdapter
  *
- *  v.0.6.3
+ *  v.0.6.4
  *
  * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
  *
@@ -31,7 +31,7 @@
  * These are initialized to the default versions defined here.
  * You can create and attach alternative type name conversion methods to the JsonResultsAdapter
  *
- * This adapter memoizes the type names it encounters
+ * This adapter memorizes the type names it encounters
  * by adding a 'typeMap' object to the JsonResultsAdapter.
  *
  * By default this adapter permits multiple entities to be saved at a time,
@@ -119,7 +119,7 @@
         var headers = {
           'Accept': 'application/json;odata=verbose',
           'Content-Type': 'application/json;odata=verbose',
-          'DataServiceVersion': '2.0' // or get MIME type error
+          'DataServiceVersion': '3.0'
         };
         // conditionally include the digest if provided
         if (saveContext.requestDigest) {
@@ -317,7 +317,7 @@
         var url = mappingContext.getUrl();
         var headers = {
             'Accept': 'application/json;odata=verbose',
-            'DataServiceVersion': '2.0' // seems to work w/o this but just in case
+            'DataServiceVersion': '3.0'
         };
 
         adapter._ajaxImpl.ajax({

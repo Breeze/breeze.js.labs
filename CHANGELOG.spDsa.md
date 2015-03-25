@@ -2,6 +2,10 @@ SharePoint Data Service Adapter Change Log
 ==========================================
 The following lists the changes to the data service adapter.
 
+0.6.4
+-----
+- Updated the `DataServiceVersion` specified in the HTTP request header to 3.0, resolving bug [#11](https://github.com/andrewconnell/breeze.js.labs/issues/11).
+
 0.6.3
 -----
 - Updated adapter to account for the case when the adapter.getRequestDigest() method is not defined. If not defined / set to null, the X-RequestDigest is not included in the HTTP request header. This header value is only needed when to project against XSRF (aka: using cookies for authentication) as when OAuth tokens are used for authentication, XSRF is moot as cookies are not used.
