@@ -2,6 +2,10 @@ SharePoint Data Service Adapter Change Log
 ==========================================
 The following lists the changes to the data service adapter.
 
+0.7.1
+-----
+- Refactoring for cleaner & more performant data service adapter registration.
+
 0.7.0
 -----
 - Added support for SharePoint 2010 OData endpoint, resolving feature request [#2](https://github.com/andrewconnell/breeze.js.labs/issues/2). See the [README.spDsa.md](README.spDsa.md) for usage information.
