@@ -1,9 +1,12 @@
 ﻿/*
- * Breeze Labs SharePoint 2013 OData DataServiceAdapter
+ * Breeze Labs SharePoint 2013 & 2010 OData DataServiceAdapter
  *
- *  v.0.6.4
- *
- * Registers a SharePoint 2013 OData DataServiceAdapter with Breeze
+ *  v.0.7.0
+ * 
+ * SharePoint 2010 DataServiceAdapter name = SharePointOData2010
+ * SharePoint 2013+ DataServiceAdapter name = SharePointOData
+ * 
+ * Registers a SharePoint 2013 & 2010 OData DataServiceAdapter with Breeze
  *
  * REQUIRES breeze.labs.dataservice.abstractrest.js v.0.6.3+
  *
@@ -62,6 +65,7 @@
 }(function (breeze) {
     "use strict";
 
+    // register SharePoint 2013+ data service adapter
     var ctor = function () {
         this.name = "SharePointOData";
     };
@@ -70,19 +74,41 @@
     function typeInitialize() {
         // Delay setting the prototype until we're sure AbstractRestDataServiceAdapter is loaded
         var proto = breeze.AbstractRestDataServiceAdapter.prototype;
-        proto = breeze.core.extend(ctor.prototype, proto);
-        proto.executeQuery = executeQuery;
-        proto._addToSaveContext = _addToSaveContext;
-        proto._createChangeRequest = _createChangeRequest;
-        proto._createErrorFromResponse = _createErrorFromResponse;
-        proto._createJsonResultsAdapter = _createJsonResultsAdapter;
-        proto._getResponseData = _getResponseData;
-        proto._processSavedEntity = _processSavedEntity;
+        breeze.core.extend(this, proto);
+        this.executeQuery = executeQuery;
+        this._addToSaveContext = _addToSaveContext;
+        this._createChangeRequest = _createChangeRequest;
+        this._createErrorFromResponse = _createErrorFromResponse;
+        this._createJsonResultsAdapter = _createJsonResultsAdapter;
+        this._getResponseData = _getResponseData;
+        this._processSavedEntity = _processSavedEntity;
 
         this.initialize(); // the revised initialize()
     }
-
     breeze.config.registerAdapter("dataService", ctor);
+    // </> register SharePoint 2013+ data service adapter
+
+
+    // register SharePoint 2010 data service adapter
+    var ctor2010 = function Ctor2010() {
+        this.name = "SharePointOData2010";
+    };
+    ctor2010.prototype.initialize = typeInitialize2010;
+
+    function typeInitialize2010 () {
+        var ctor = breeze.config.getAdapter('dataService', 'SharePointOData');
+        ctor.prototype.initialize.bind(this)();
+
+        // override the JSON results adapter handling of the SharePoint types.
+        var jsr = this.jsonResultsAdapter;
+        jsr.clientTypeNameToServer = clientTypeNameToServer2010Default;
+        jsr.serverTypeNameToClient = serverTypeNameToClient2010Default;
+    }
+    breeze.config.registerAdapter("dataService", ctor2010);
+    // </> register SharePoint 2010 data service adapter
+
+
+    ///////// implementation functions  ///////////////////////////////////////////
 
     function _addToSaveContext(saveContext) {
         saveContext.requestDigest = this.getRequestDigest ? this.getRequestDigest() : null;
@@ -106,6 +132,10 @@
         return 'SP.Data.' + clientTypeName + 'ListItem';
     }
 
+    function clientTypeNameToServer2010Default(clientTypeName) {
+        return 'Microsoft.SharePoint.DataService.' + clientTypeName + 'Item';
+    }
+
     function _createChangeRequest(saveContext, entity, index) {
         var adapter = saveContext.adapter;
         var data, rawEntity, request;
@@ -117,10 +147,15 @@
         var state = aspect.entityState;
         var type = entity.entityType;
         var headers = {
-          'Accept': 'application/json;odata=verbose',
-          'Content-Type': 'application/json;odata=verbose',
-          'DataServiceVersion': '3.0'
+            'Accept': 'application/json;odata=verbose',
+            'Content-Type': 'application/json;odata=verbose',
+            'DataServiceVersion': '3.0'   // default for SharePoint 2013+ endpoint
         };
+        // if SP2010 adapter in use, change data service version
+        if (adapter.name == 'SharePointOData2010') {
+            headers.DataServiceVersion = '2.0';
+        }
+
         // conditionally include the digest if provided
         if (saveContext.requestDigest) {
             headers['X-RequestDigest'] = saveContext.requestDigest;
@@ -162,7 +197,6 @@
             headers['X-HTTP-Method'] = 'MERGE';
             rawEntity = helper.unwrapChangedValues(
                 entity, entityManager.metadataStore, adapter._transformSaveValue);
-            // Todo: determine if SharePoint really wants this __metadata
             rawEntity.__metadata = { 'type': aspect.extraMetadata.type };
             request.data = adapter._serializeToJson(rawEntity);
 
@@ -309,7 +343,7 @@
         }
     }
 
-    function executeQuery(mappingContext) {
+  function executeQuery(mappingContext) {
         var adapter = mappingContext.adapter = this;
         mappingContext.entityType = adapter._getEntityTypeFromMappingContext(mappingContext);
         applyDefaultSelect(mappingContext);
@@ -317,8 +351,12 @@
         var url = mappingContext.getUrl();
         var headers = {
             'Accept': 'application/json;odata=verbose',
-            'DataServiceVersion': '3.0'
+            'DataServiceVersion': '3.0'   // default for SharePoint 2013+ OData
         };
+        // if SP2010 adapter in use, change data service version
+        if (adapter.name == 'SharePointOData2010') {
+            headers.DataServiceVersion = '2.0';
+        }
 
         adapter._ajaxImpl.ajax({
             type: "GET",
@@ -350,7 +388,7 @@
     }
 
     function _getResponseData(response) {
-        return response.data && response.data.d; // sharepoint adds a 'd' !?!
+        return response.data && response.data.d;
     }
 
     function _processSavedEntity(savedEntity, response /*, saveContext, index*/) {
@@ -364,6 +402,14 @@
         // strip off leading 'SP.Data.' and trailing 'ListItem'
         var re = /^(SP\.Data.)(.*)(ListItem)$/;
         var typeName = serverTypeName.replace(re, '$2');
+
+        return breeze.MetadataStore.normalizeTypeName(typeName);
+    }
+
+    function serverTypeNameToClient2010Default(serverTypeName) {
+        // strip off leading 'Microsoft.SharePoint.DataService.' and trailing 'Item'
+        var regex = /^(Microsoft\.SharePoint\.DataService\.)(.*)(Item)$/;
+        var typeName = serverTypeName.replace(regex, '$2');
 
         return breeze.MetadataStore.normalizeTypeName(typeName);
     }
