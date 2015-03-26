@@ -16,10 +16,13 @@
     "name": "IdeaBlade",
     "url": "http://www.ideablade.com/"
   },
-  "main": "breeze.debug.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/Breeze/breeze.js.labs.git"
+  },
+  "main": "",
+  "dependencies": {
+    "breeze-client": "^1.5.3"
   },
   "maintainers": [
     {
@@ -34,5 +37,8 @@
       "name": "wardbell",
       "email": "wardb@ideablade.com"
     }
-  ]
+  ],
+  "jspm": {
+    "main": false
+  }
 }
