@@ -2,7 +2,7 @@ SharePoint Data Service Adapter Change Log
 ==========================================
 The following lists the changes to the data service adapter.
 
-0.7.1
+0.10.0
 -----
 - Refactoring for cleaner & more performant data service adapter registration.
 
@@ -20,7 +20,7 @@ The following lists the changes to the data service adapter.
 
 0.6.2
 -----
-- Resolved [issue #6](https://github.com/andrewconnell/breeze.js.labs/issues/6) where entity types had an extra "s" being added incorrectly. The following fix resolves the issue but introduces breaking changes to existing solutions. Once you apply this version, the name of the entity when you populate the metadata store should match the name of the list in SharePoint. 
+- Resolved [issue #6](https://github.com/andrewconnell/breeze.js.labs/issues/6) where entity types had an extra "s" being added incorrectly. The following fix resolves the issue but introduces breaking changes to existing solutions. Once you apply this version, the name of the entity when you populate the metadata store should match the name of the list in SharePoint.
 
   For instance, if you have a list **Customers**, you should set the entity's **name** property to **Customers**. If the entity name & SharePoint list do not match, Breeze will not recognize the inbound data from an HTTP GET as being the type you manually created when populating the Breeze metadata store.
 

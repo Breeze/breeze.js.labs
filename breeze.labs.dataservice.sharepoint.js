@@ -1,11 +1,11 @@
 ﻿/*
  * Breeze Labs SharePoint 2013 & 2010 OData DataServiceAdapter
  *
- *  v.0.7.1
- * 
+ *  v.0.10.0
+ *
  * SharePoint 2010 DataServiceAdapter name = SharePointOData2010
  * SharePoint 2013+ DataServiceAdapter name = SharePointOData
- * 
+ *
  * Registers a SharePoint 2013 & 2010 OData DataServiceAdapter with Breeze
  *
  * REQUIRES breeze.labs.dataservice.abstractrest.js v.0.6.3+
