@@ -75,38 +75,30 @@
   proto = breeze.core.extend(ctor.prototype, proto);
   proto.executeQuery = executeQuery;
   proto._addToSaveContext = _addToSaveContext;
+  proto._clientTypeNameToServerDefault = clientTypeNameToServerDefault;
   proto._createChangeRequest = _createChangeRequest;
   proto._createErrorFromResponse = _createErrorFromResponse;
   proto._createJsonResultsAdapter = _createJsonResultsAdapter;
   proto._getResponseData = _getResponseData;
   proto._processSavedEntity = _processSavedEntity;
+  proto._serverTypeNameToClientDefault = serverTypeNameToClientDefault;
 
   breeze.config.registerAdapter("dataService", ctor);
   // </> register SharePoint 2013+ data service adapter
-
 
   // register SharePoint 2010 data service adapter
   var ctor2010 = function Ctor2010() {
     this.name = "SharePointOData2010";
     this.dataServiceVersion = '2.0';
   };
-  var init2013 = proto.initialize;
   var proto2010 = breeze.core.extend(ctor2010.prototype, proto);
-
-  proto2010.initialize = function () {
-    init2013.bind(this)();
-
-    // override the JSON results adapter handling of the SharePoint types.
-    var jsr = this.jsonResultsAdapter;
-    jsr.clientTypeNameToServer = clientTypeNameToServer2010Default;
-    jsr.serverTypeNameToClient = serverTypeNameToClient2010Default;
-  };
+  proto2010._clientTypeNameToServerDefault = clientTypeNameToServer2010Default;
+  proto2010._serverTypeNameToClientDefault = serverTypeNameToClient2010Default
 
   breeze.config.registerAdapter("dataService", ctor2010);
   // </> register SharePoint 2010 data service adapter
 
-
-  ///////// implementation functions  ///////////////////////////////////////////
+  ///////// implementation functions  //////////////////////////////////
 
   function _addToSaveContext(saveContext) {
     saveContext.requestDigest = this.getRequestDigest ? this.getRequestDigest() : null;
@@ -275,8 +267,8 @@
       visitNode: visitNode
     });
 
-    jsonResultsAdapter.clientTypeNameToServer = clientTypeNameToServerDefault;
-    jsonResultsAdapter.serverTypeNameToClient = serverTypeNameToClientDefault;
+    jsonResultsAdapter.clientTypeNameToServer = dataServiceAdapter._clientTypeNameToServerDefault;
+    jsonResultsAdapter.serverTypeNameToClient = dataServiceAdapter._serverTypeNameToClientDefault;
 
     return jsonResultsAdapter;
 
