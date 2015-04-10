@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.Angular</id>
-        <version>1.1.0</version>
+        <version>1.1.1</version>
         <title>Breeze Labs: Breeze Angular Service</title>
         <authors>Ward Bell</authors>
         <owners>Ward Bell</owners>
@@ -20,8 +20,8 @@ Also pulls in the Breeze Labs breeze angular directives for validation and the c
         <language>en-US</language>
         <tags>breeze labs angular client</tags>
         <dependencies>
-            <dependency id="Breeze.Client" version="[1.5.2, ]" />
-            <dependency id="Breeze.Angular.Directives" version="[1.3.9, ]" />
+            <dependency id="Breeze.Client" version="[1.5.3, ]" />
+            <dependency id="Breeze.Angular.Directives" version="[1.3.10, ]" />
         </dependencies>
     </metadata>
     <files>
