@@ -5,6 +5,11 @@ Breeze Labs version numbers are semi-independent of BreezeJS version numbers.
 
 The build number (last of the 3 digits) floats independently. We strive to keep the major.minor digits in sync with BreezeJS
 
+1.5.7
+---------------------
+
+- abstractrest adapter has richer _createErrorFromResponse
+
 1.5.6
 ---------------------
 

@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs Abstract REST DataServiceAdapter
  *
- *  v.0.6.4
+ *  v.0.6.5
  *
  * Extends Breeze with a REST DataService Adapter abstract type
  *
@@ -245,11 +245,12 @@
     function _createErrorFromResponse(response, url, context, errorEntity) {
         var err = new Error();
         err.response = response;
+        var data = response.data || {};
         if (url) { err.url = url; }
-        err.status =  response.status || '???';
-        err.statusText = response.statusText;
-        err.message =  response.message || response.error || response.statusText;
-        this.catchNoConnectionError(err);
+        err.status =  data.code || response.status || '???';
+        err.statusText = response.statusText || err.status;
+        err.message =  data.error || response.message || response.error || err.statusText;
+        this._catchNoConnectionError(err);
         return err;
     }
 
