@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs Abstract REST DataServiceAdapter
  *
- *  v.0.6.3
+ *  v.0.6.4
  *
  * Extends Breeze with a REST DataService Adapter abstract type
  *
@@ -144,7 +144,7 @@
         function querySuccess(response) {
             try {
                 var rData = {
-                    results: adapter._getResponseData(response).results,
+                    results: adapter._getResponseData(response),
                     httpResponse: response
                 };
                 deferred.resolve(rData);
