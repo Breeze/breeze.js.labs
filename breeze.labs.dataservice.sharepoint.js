@@ -357,7 +357,7 @@
         var data = response.data;
         var inlineCount = data.__count ? parseInt(data.__count, 10) : undefined;
         var rData = {
-          results: adapter._getResponseData(response).results,
+          results: adapter._getResponseData(response).results || adapter._getResponseData(response),
           inlineCount: inlineCount,
           httpResponse: response
         };
