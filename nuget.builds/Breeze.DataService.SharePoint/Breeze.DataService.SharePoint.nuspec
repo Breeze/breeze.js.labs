@@ -2,9 +2,9 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.DataService.SharePoint</id>
-        <version>0.10.0</version>
+        <version>0.10.1</version>
         <title>Breeze Labs: SharePoint OData DataServiceAdapter</title>
-        <authors>Ward Bell,Andrew Connell</authors>
+        <authors>Ward Bell, Andrew Connell</authors>
         <owners>Ward Bell</owners>
         <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
         <projectUrl>http://www.breezejs.com/breeze-labs/breezesharepointdataservicejs</projectUrl>

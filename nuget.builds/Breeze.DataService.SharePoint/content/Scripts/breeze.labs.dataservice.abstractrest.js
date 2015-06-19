@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs Abstract REST DataServiceAdapter
  *
- *  v.0.6.3
+ *  v.0.6.6
  *
  * Extends Breeze with a REST DataService Adapter abstract type
  *
@@ -144,13 +144,17 @@
         function querySuccess(response) {
             try {
                 var rData = {
-                    results: adapter._getResponseData(response).results,
+                    results: adapter._getResponseData(response),
                     httpResponse: response
                 };
                 deferred.resolve(rData);
             } catch (e) {
-                // program error means adapter it broken, not SP or the user
-                deferred.reject(new Error("Program error: failed while parsing successful query response"));
+                // if here, the adapter is broken, not bad data
+                var err = new Error("Query failed while parsing successful query response")
+                err.name = "Program Error";
+                err.response = response;
+                err.originalError = e;
+                deferred.reject(err);
             }
         }
     }
@@ -212,7 +216,7 @@
 
     function _addToSaveContext(/* saveContext */) { }
 
-    function _addKeyMapping(saveContext, index, saved){
+    function _addKeyMapping(saveContext, index, saved) {
         var tempKey = saveContext.tempKeys[index];
         if (tempKey) {
             // entity had a temporary key; add a temp-to-perm key mapping
@@ -245,11 +249,12 @@
     function _createErrorFromResponse(response, url, context, errorEntity) {
         var err = new Error();
         err.response = response;
+        var data = response.data || {};
         if (url) { err.url = url; }
-        err.status =  response.status || '???';
-        err.statusText = response.statusText;
-        err.message =  response.message || response.error || response.statusText;
-        this.catchNoConnectionError(err);
+        err.status = data.code || response.status || '???';
+        err.statusText = response.statusText || err.status;
+        err.message = data.error || response.message || response.error || err.statusText;
+        this._catchNoConnectionError(err);
         return err;
     }
 
@@ -265,7 +270,7 @@
 
     function _getEntityTypeFromMappingContext(mappingContext) {
         var query = mappingContext.query;
-        if (!query) {return null;}
+        if (!query) { return null; }
         var entityType = query.entityType || query.resultEntityType;
         if (!entityType) { // try to figure it out from the query.resourceName
             var metadataStore = mappingContext.metadataStore;
@@ -308,7 +313,7 @@
         return response.data;
     }
 
-    function _processSavedEntity(/*savedEntity, response, saveContext, index*/){
+    function _processSavedEntity(/*savedEntity, response, saveContext, index*/) {
         // Virtual method. Override in concrete adapter if needed.
     }
 

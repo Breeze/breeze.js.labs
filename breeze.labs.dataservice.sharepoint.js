@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs SharePoint 2013 & 2010 OData DataServiceAdapter
  *
- *  v.0.10.0
+ *  v.0.10.1
  *
  * SharePoint 2010 DataServiceAdapter name = SharePointOData2010
  * SharePoint 2013+ DataServiceAdapter name = SharePointOData
@@ -357,20 +357,25 @@
         var data = response.data;
         var inlineCount = data.__count ? parseInt(data.__count, 10) : undefined;
         var rData = {
-          results: adapter._getResponseData(response).results,
+          results: adapter._getResponseData(response),
           inlineCount: inlineCount,
           httpResponse: response
         };
         deferred.resolve(rData);
       } catch (e) {
-        // program error means adapter it broken, not SP or the user
-        deferred.reject(new Error("Program error: failed while parsing successful query response"));
+        // if here, the adapter is broken, not bad data
+        var err = new Error("Query failed while parsing successful query response")
+        err.name = "Program Error";
+        err.response = response;
+        err.originalError = e;
+        deferred.reject(err);
       }
     }
   }
 
   function _getResponseData(response) {
-    return response.data && response.data.d;
+    var data = response.data && response.data.d;
+    return data.results === undefined ? data : data.results;
   }
 
   function _processSavedEntity(savedEntity, response /*, saveContext, index*/) {

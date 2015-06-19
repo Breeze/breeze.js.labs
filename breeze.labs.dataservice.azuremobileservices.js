@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs Azure Mobile Services DataServiceAdapter
  *
- *  v.0.6.1
+ *  v.0.6.2
  *
  * Registers an Azure Mobile Services DataServiceAdapter with Breeze
  *
@@ -220,15 +220,18 @@
 
         function querySuccess(response) {
             try {
-                var data = response.data;
                 var rData = {
-                    results: data,
+                    results: adapter._getResponseData(response),
                     httpResponse: response
                 };
                 deferred.resolve(rData);
             } catch (e) {
-                // program error means adapter is broken, not SP or the user
-                deferred.reject(new Error("Program error: failed while parsing successful query response"));
+                // if here, the adapter is broken, not bad data
+                var err = new Error("Query failed while parsing successful query response")
+                err.name = "Program Error";
+                err.response = response;
+                err.originalError = e;
+                deferred.reject(err);
             }
         }
     }

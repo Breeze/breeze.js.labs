@@ -5,6 +5,13 @@ Breeze Labs version numbers are semi-independent of BreezeJS version numbers.
 
 The build number (last of the 3 digits) floats independently. We strive to keep the major.minor digits in sync with BreezeJS
 
+1.5.8
+---------------------
+
+- better abstractrest, azuremobileservices, and sharepoint adapter `querySuccess` methods
+- sharepoint adapter _getResponseData adjusted per https://github.com/Breeze/breeze.js.labs/pull/25/
+- sharepoint nuget packages updated
+
 1.5.7
 ---------------------
 
