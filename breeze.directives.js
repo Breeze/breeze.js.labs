@@ -123,7 +123,11 @@
                 var valTemplate = config.zValidateTemplate;
                 var requiredTemplate = config.zRequiredTemplate || '';
                 var decorator = angular.element('<span class="z-decorator"></span>');
-                element.after(decorator);
+                if (attrs.zAppendTo){
+                    angular.element(document.querySelector(attrs.zAppendTo)).append(decorator);
+                } else {
+                    element.after(decorator);
+                }
 
                 // unwrap bound elements
                 decorator = decorator[0];
