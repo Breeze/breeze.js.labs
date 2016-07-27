@@ -45,11 +45,14 @@
     }
 }(function (breeze) {
     'use strict';
-    breeze.ajaxpost = function(ajaxAdapter) {
+    breeze.config.ajaxpost = function(ajaxAdapter) {
         wrapAjaxImpl(ajaxAdapter);
     };
 
-    breeze.ajaxpost(); // immediately wrap whatever is the current ajax adapter
+    // For backwards compatibility, add to top level scope
+    breeze.ajaxpost = breeze.config.ajaxpost;
+
+    breeze.config.ajaxpost(); // immediately wrap whatever is the current ajax adapter
 
     ////////////////////
 
