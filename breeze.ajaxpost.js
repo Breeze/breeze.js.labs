@@ -35,21 +35,24 @@
         definition(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node
-        var b = require('breeze');
+        var b = require('breeze-client');
         definition(b);
     } else if (typeof define === "function" && define["amd"]) {
         // Requirejs / AMD
-        define(['breeze'], definition);
+        define(['breeze-client'], definition);
     } else {
         throw new Error("Can't find breeze");
     }
 }(function (breeze) {
     'use strict';
-    breeze.ajaxpost = function(ajaxAdapter) {
+    breeze.config.ajaxpost = function(ajaxAdapter) {
         wrapAjaxImpl(ajaxAdapter);
     };
 
-    breeze.ajaxpost(); // immediately wrap whatever is the current ajax adapter
+    // For backwards compatibility, add to top level scope
+    breeze.ajaxpost = breeze.config.ajaxpost;
+
+    breeze.config.ajaxpost(); // immediately wrap whatever is the current ajax adapter
 
     ////////////////////
 

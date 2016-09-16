@@ -1,6 +1,6 @@
 {
   "name": "breeze-client-labs",
-  "version": "1.5.8",
+  "version": "1.5.11",
   "description": "Breeze Labs are extensions and utilities for Breeze.js client apps that are not part of core breeze.",
   "keywords": [
     "breeze",
@@ -22,7 +22,7 @@
   },
   "main": "",
   "dependencies": {
-    "breeze-client": "^1.5.3"
+    "breeze-client": "^1.5.10"
   },
   "maintainers": [
     {
