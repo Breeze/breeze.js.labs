@@ -124,7 +124,20 @@
                 var requiredTemplate = config.zRequiredTemplate || '';
                 var decorator = angular.element('<span class="z-decorator"></span>');
                 if (attrs.zAppendTo){
-                    angular.element(document.querySelector(attrs.zAppendTo)).append(decorator);
+                    var selectedEls = document.querySelectorAll(attrs.zAppendTo);
+                    if (selectedEls.length > 1) {
+                        var currentEl = domEl;
+                        var selectedElContainsCurrent = Array.prototype.some.bind(selectedEls, function (el) {
+                            return el === currentEl;
+                        });
+                        while (!selectedElContainsCurrent() && currentEl.tagName !== 'BODY') {
+                            currentEl = currentEl.parentElement;
+                        }
+                        selectedEls = currentEl.tagName === 'BODY'
+                            ? null
+                            : currentEl;
+                    } 
+                    angular.element(selectedEls).append(decorator);
                 } else {
                     element.after(decorator);
                 }
