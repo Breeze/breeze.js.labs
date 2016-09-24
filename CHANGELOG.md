@@ -5,6 +5,11 @@ Breeze Labs version numbers are semi-independent of BreezeJS version numbers.
 
 The build number (last of the 3 digits) floats independently. We strive to keep the major.minor digits in sync with BreezeJS
 
+1.5.12
+---------------------
+
+- Fixed breeze.ajaxpost.js failing if no ajax adapter is configured at the time of loading the library
+
 1.5.10
 ---------------------
 

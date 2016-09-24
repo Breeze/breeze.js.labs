@@ -59,6 +59,9 @@
     function wrapAjaxImpl(ajaxAdapter) {
         if (!ajaxAdapter) {
             ajaxAdapter = breeze.config.getAdapterInstance("ajax");
+
+            // There may not be a current ajax adapter. This can happen if breeze.base.*.js is being used
+            if (!ajaxAdapter) return;
         }
         if (ajaxAdapter.ajaxPostEnabled){
             return; // already wrapped it.
