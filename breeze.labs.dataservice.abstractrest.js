@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs Abstract REST DataServiceAdapter
  *
- *  v.0.6.0
+ *  v.0.6.6
  *
  * Extends Breeze with a REST DataService Adapter abstract type
  *
@@ -31,21 +31,21 @@
  * If 'saveOnlyOne' == true, the adapter throws an exception
  * when asked to save more than one entity at a time.
  *
- * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.
+ * Copyright 2015 IdeaBlade, Inc.  All Rights Reserved.
  * Licensed under the MIT License
  * http://opensource.org/licenses/mit-license.php
  * Authors: Ward Bell
  */
-(function (definition, window) {
-    if (window.breeze) {
-        definition(window.breeze);
+(function (definition) {
+    if (typeof breeze === "object") {
+        definition(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node
-        var b = require('breeze');
+        var b = require('breeze-client');
         definition(b);
-    } else if (typeof define === "function" && define["amd"] && !window.breeze) {
+    } else if (typeof define === "function" && define["amd"]) {
         // Requirejs / AMD
-        define(['breeze'], definition);
+        define(['breeze-client'], definition);
     } else {
         throw new Error("Can't find breeze");
     }
@@ -68,15 +68,18 @@
         saveChanges: saveChanges,
 
         // Configuration API
-        ChangeRequestInterceptor: abstractDsaProto.ChangeRequestInterceptor, // default, no-op ctor
+        changeRequestInterceptor: abstractDsaProto.changeRequestInterceptor, // default, no-op ctor
         checkForRecomposition: checkForRecomposition,
         saveOnlyOne: false, // true if may only save one entity at a time.
         ignoreDeleteNotFound: true, // true if should ignore a 404 error from a delete
 
         // "protected" members available to derived concrete dataservice adapter types
         _addToSaveContext: _addToSaveContext,
+        _addKeyMapping: _addKeyMapping,
         _ajaxImpl: undefined, // see initialize()
         _catchNoConnectionError: abstractDsaProto._catchNoConnectionError,
+        _createChangeRequestInterceptor: abstractDsaProto._createChangeRequestInterceptor,
+        _changeRequestSucceeded: _changeRequestSucceeded,
         _createErrorFromResponse: _createErrorFromResponse,
         _createChangeRequest: _createChangeRequest,
         _createJsonResultsAdapter: _createJsonResultsAdapter,
@@ -119,7 +122,7 @@
     }
 
     function executeQuery(mappingContext) {
-        var adapter = this;
+        var adapter = mappingContext.adapter = this;
         var deferred = adapter.Q.defer();
         var url = mappingContext.getUrl();
         var headers = {
@@ -141,13 +144,17 @@
         function querySuccess(response) {
             try {
                 var rData = {
-                    results: adapter._getResponseData(response).results,
+                    results: adapter._getResponseData(response),
                     httpResponse: response
                 };
                 deferred.resolve(rData);
             } catch (e) {
-                // program error means adapter it broken, not SP or the user
-                deferred.reject(new Error("Program error: failed while parsing successful query response"));
+                // if here, the adapter is broken, not bad data
+                var err = new Error("Query failed while parsing successful query response")
+                err.name = "Program Error";
+                err.response = response;
+                err.originalError = e;
+                deferred.reject(err);
             }
         }
     }
@@ -209,6 +216,22 @@
 
     function _addToSaveContext(/* saveContext */) { }
 
+    function _addKeyMapping(saveContext, index, saved) {
+        var tempKey = saveContext.tempKeys[index];
+        if (tempKey) {
+            // entity had a temporary key; add a temp-to-perm key mapping
+            var entityType = tempKey.entityType;
+            var tempValue = tempKey.values[0];
+            var realKey = getRealKey(entityType, saved);
+            var keyMapping = {
+                entityTypeName: entityType.name,
+                tempValue: tempValue,
+                realValue: realKey.values[0]
+            };
+            saveContext.saveResult.keyMappings.push(keyMapping);
+        }
+    }
+
     function _clientTypeNameToServer(typeName) {
         var jrAdapter = this.jsonResultsAdapter;
         return jrAdapter.clientTypeNameToServer ?
@@ -220,16 +243,18 @@
     }
 
     // Create error object for both query and save responses.
+    // A method on the adapter (`this`)
     // 'context' can help differentiate query and save
     // 'errorEntity' only defined for save response
     function _createErrorFromResponse(response, url, context, errorEntity) {
         var err = new Error();
         err.response = response;
+        var data = response.data || {};
         if (url) { err.url = url; }
-        err.status =  response.status || '???';
-        err.statusText = response.statusText;
-        err.message =  response.message || response.error || response.statusText;
-        fn_.catchNoConnectionError(err);
+        err.status = data.code || response.status || '???';
+        err.statusText = response.statusText || err.status;
+        err.message = data.error || response.message || response.error || err.statusText;
+        this._catchNoConnectionError(err);
         return err;
     }
 
@@ -245,7 +270,7 @@
 
     function _getEntityTypeFromMappingContext(mappingContext) {
         var query = mappingContext.query;
-        if (!query) {return null;}
+        if (!query) { return null; }
         var entityType = query.entityType || query.resultEntityType;
         if (!entityType) { // try to figure it out from the query.resourceName
             var metadataStore = mappingContext.metadataStore;
@@ -288,7 +313,7 @@
         return response.data;
     }
 
-    function _processSavedEntity(/*savedEntity, response, saveContext, index*/){
+    function _processSavedEntity(/*savedEntity, response, saveContext, index*/) {
         // Virtual method. Override in concrete adapter if needed.
     }
 
@@ -328,8 +353,8 @@
         var originalEntities = saveContext.originalEntities = saveBundle.entities;
         saveContext.tempKeys = [];
 
-        var changeRequestInterceptor = 
-            abstractDsaProto._createChangeRequestInterceptor(saveContext, saveBundle);
+        var changeRequestInterceptor =
+            adapter._createChangeRequestInterceptor(saveContext, saveBundle);
 
         var requests = originalEntities.map(function (entity, index) {
             var request = adapter._createChangeRequest(saveContext, entity, index);
@@ -382,7 +407,7 @@
                 if ((!status) || status >= 400) {
                     tryRequestFailed(response);
                 } else {
-                    var savedEntity = changeRequestSucceeded(saveContext, response, index);
+                    var savedEntity = adapter._changeRequestSucceeded(saveContext, response, index);
                     adapter._processSavedEntity(savedEntity, response, saveContext, index);
                     deferred.resolve(true);
                 }
@@ -418,34 +443,18 @@
         }
     }
 
-    function changeRequestSucceeded(saveContext, response, index) {
+    function _changeRequestSucceeded(saveContext, response, index) {
         var saved = saveContext.adapter._getResponseData(response);
         if (saved && typeof saved === 'object') {
             // Have "saved entity" data; add its type (for JsonResultsAdapter) & KeyMapping
             saved.$entityType = saveContext.originalEntities[index].entityType;
-            addKeyMapping();
+            saveContext.adapter._addKeyMapping(saveContext, index, saved);
         } else {
             // No "saved entity" data; return the original entity
             saved = saveContext.originalEntities[index];
         }
         saveContext.saveResult.entities.push(saved);
         return saved;
-
-        function addKeyMapping(){
-            var tempKey = saveContext.tempKeys[index];
-            if (tempKey) {
-                // entity had a temporary key; add a temp-to-perm key mapping
-                var entityType = tempKey.entityType;
-                var tempValue = tempKey.values[0];
-                var realKey = getRealKey(entityType, saved);
-                var keyMapping = {
-                    entityTypeName: entityType.name,
-                    tempValue: tempValue,
-                    realValue: realKey.values[0]
-                };
-                saveContext.saveResult.keyMappings.push(keyMapping);
-            }
-        }
     }
 
-}, this));
+}));

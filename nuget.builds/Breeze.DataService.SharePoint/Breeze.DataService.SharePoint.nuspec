@@ -2,21 +2,25 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>Breeze.DataService.SharePoint</id>
-        <version>0.2.5</version>
-        <title>Breeze Labs: SharePoint 2013 OData DataServiceAdapter</title>
-        <authors>Ward Bell,Andrew Connell</authors>
+        <version>0.10.1</version>
+        <title>Breeze Labs: SharePoint OData DataServiceAdapter</title>
+        <authors>Ward Bell, Andrew Connell</authors>
         <owners>Ward Bell</owners>
         <licenseUrl>http://www.opensource.org/licenses/mit-license.php</licenseUrl>
         <projectUrl>http://www.breezejs.com/breeze-labs/breezesharepointdataservicejs</projectUrl>
-        <iconUrl>http://www.breezejs.com/sites/all/images/breezelabsb.png</iconUrl>
+        <iconUrl>http://www.breezejs.com/sites/default/files/images/BreezeLabsB.png</iconUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <description>A Breeze DataServiceAdapter for SharePoint 2013 apps</description>
-        <summary>A Breeze DataServiceAdapter for SharePoint 2013 apps</summary>
-        <copyright>Copyright © 2014 IdeaBlade</copyright>
+        <description>A Breeze DataServiceAdapter for SharePoint 2010 solutions and 2013 apps</description>
+        <summary>A Breeze DataServiceAdapter for SharePoint 2010 solutions and 2013 apps</summary>
+        <copyright>Copyright © 2015 IdeaBlade</copyright>
         <language>en-US</language>
         <tags>breeze labs sharepoint client</tags>
         <dependencies>
-            <dependency id="Breeze.Client" version="[1.4.9, ]" />
+            <dependency id="Breeze.Client" version="[1.5.3, ]" />
         </dependencies>
     </metadata>
+    <files>
+        <file src="content\Scripts\breeze.labs.dataservice.abstractrest.js" target="content\Scripts\breeze.labs.dataservice.abstractrest.js" />
+        <file src="content\Scripts\breeze.labs.dataservice.sharepoint.js" target="content\Scripts\breeze.labs.dataservice.sharepoint.js" />
+    </files>
 </package>

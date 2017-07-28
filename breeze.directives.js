@@ -1,13 +1,13 @@
 ﻿/*
  * Breeze Labs: Breeze Directives for Angular Apps
  *
- *  v.1.3.5
+ *  v.1.3.10
  *
  *  Usage:
  *     Make this module a dependency of your app module:
  *       var app = angular.module('app', ['breeze.directives']);
  *
- * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.
+ * Copyright 2015 IdeaBlade, Inc.  All Rights Reserved.
  * Licensed under the MIT License
  * http://opensource.org/licenses/mit-license.php
  * Author: Ward Bell
@@ -30,7 +30,7 @@
     *  This formatter returns the view value rather than the model property value
     *  if the two values are deemed equivalent.
     *
-    *  For explanation and more info, see 
+    *  For explanation and more info, see
     *  http://www.breezejs.com/breeze-labs/breezedirectivesfloat
     *
     *  Install
@@ -50,10 +50,10 @@
             link: function(scope, elm, attr, ngModelCtrl) {
                 if (attr.type === 'radio' || attr.type === 'checkbox') return;
                 ngModelCtrl.$formatters.push(equivalenceFormatter);
-                
-                function equivalenceFormatter(value){
+
+                function equivalenceFormatter(modelValue){
                    var viewValue = ngModelCtrl.$viewValue // could have used 'elm.val()'
-                   return (value === +viewValue) ? viewValue : value;
+                   return (+viewValue === +modelValue) ? viewValue : modelValue;
                 }
             }
         };
@@ -105,10 +105,10 @@
             // get validation info for bound element and entity property
             var info = validateInfo.create(
                 scope,
-                attrs.ngModel,
+                attrs.ngModel || attrs.kNgModel, // kNgModel is for KendoUI
                 attrs.zValidate);
 
-            if (!info.getValErrs) { return; } // can't do anything
+            if (!info.getValErrs) { return; } // can't do anything w/o this method
 
             // Use only features defined in Angular's jqLite
             var domEl = element[0];
@@ -123,21 +123,26 @@
                 var valTemplate = config.zValidateTemplate;
                 var requiredTemplate = config.zRequiredTemplate || '';
                 var decorator = angular.element('<span class="z-decorator"></span>');
-                element.after(decorator);
+                if (attrs.zAppendTo){
+                    angular.element(document.querySelector(attrs.zAppendTo)).append(decorator);
+                } else {
+                    element.after(decorator);
+                }
 
                 // unwrap bound elements
                 decorator = decorator[0];
                 scope.$watch(info.getValErrs, valErrsChanged);
 
                 // update the message in the validation template
-                // when a validation error changes on an input control 
+                // when a validation error changes on an input control
+                // newValue is either a string or null (null when no bound entity)
                 function valErrsChanged(newValue) {
 
                     // HTML5 custom validity
                     // http://dev.w3.org/html5/spec-preview/constraints.html#the-constraint-validation-api
                     if (domEl.setCustomValidity) {
                         /* only works in HTML 5. Maybe should throw if not available. */
-                        domEl.setCustomValidity(newValue);
+                        domEl.setCustomValidity(newValue || '');
                     }
 
                     var errorHtml = newValue ? valTemplate.replace(/%error%/, newValue) : "";
@@ -156,7 +161,7 @@
                 scope.$watch(info.getValErrs, valErrsChanged);
 
                 // update the message in the z_invalid and z_error properties in the scope
-                // when a validation error changes on a non-input control 
+                // when a validation error changes on a non-input control
                 function valErrsChanged(newValue) {
                     var errorMsg = newValue ? newValue : "";
                     scope.z_error = errorMsg;
@@ -168,7 +173,7 @@
     }
 
     // Service to extract validation information from a zValidate data binding
-    // Although built for Angular, it is designed to be used 
+    // Although built for Angular, it is designed to be used
     // in alternative zValidate directive implementations
     function zValidateInfo() {
 
@@ -191,8 +196,6 @@
             this.scope = scope;
 
             setEntityAndPropertyPaths(this, modelPath, validationPath);
-            // this.entityPath
-            // this.propertyPath 
 
             this.getEntityAspect = this.entityPath ?
                     getEntityAspectFromEntityPath(this) :
@@ -248,7 +251,13 @@
 
         function getEntityAspectFromEntityPath(info) {
             return function () {
-                try { return info.scope.$eval(info.entityPath)['entityAspect']; }
+                try {
+                    var entity = info.scope.$eval(info.entityPath);
+                    if (!entity.entityAspect) {
+                        return info.scope.$eval(info.entityPath)['complexAspect'].getEntityAspect();
+                    }
+                    return info.scope.$eval(info.entityPath)['entityAspect'];
+                }                
                 catch (_) { return undefined; }
             }
         }
@@ -261,7 +270,7 @@
             // We don't know if it is required yet.
             // Once bound to the entity we can determine whether the data property is required
             // Note: Not bound until *second* call to the directive's link function
-            //       which is why you MUST call 'getIsRequired' 
+            //       which is why you MUST call 'getIsRequired'
             //       inside 'valErrsChanged' rather than in the link function
             var entityType = info.getType();
             if (entityType) { // the bound entity is known
@@ -297,6 +306,8 @@
             var required = {};
             type.custom.required = required;
             var props = type.getProperties();
+            var childProps = getComplexChildProperties(props);
+            props = props.concat(childProps);            
             props.forEach(function (prop) {
                 var vals = prop.validators;
                 for (var i = vals.length; i--;) {
@@ -311,6 +322,16 @@
             return required;
         }
 
+        function getComplexChildProperties(props) {
+            var children = [];
+            props.forEach(function (prop) {
+                if (prop.isComplexProperty) {
+                    children = children.concat(prop.dataType.getProperties());
+                }
+            });
+            return children;
+        }
+ 
         function setEntityAndPropertyPaths(info, modelPath, validationPath) {
 
             // examples:
@@ -320,7 +341,7 @@
             if (modelPath) {
                 parsePath(modelPath);
             }
-            // validationPath can override either entity or property path; 
+            // validationPath can override either entity or property path;
             // examples:
             //   'productId'               // property only
             //   'vm.order.delivery'       // entity path and property
@@ -329,8 +350,8 @@
             // optional ','  syntax as {entity, property} path separator
             // so can separate entity path from a complex property path
             // examples:
-            //   'vm.order,address.street' // entity w/ complex prop 
-            //   'vm.order,address[street]' // entity w/ complex indexed prop 
+            //   'vm.order,address.street' // entity w/ complex prop
+            //   'vm.order,address[street]' // entity w/ complex indexed prop
             if (validationPath) {
                 // Look for ',' syntax
                 var paths = validationPath.split(',');
@@ -360,8 +381,8 @@
                 // propertyPath should be 'delivery'
                 // entityPath should be 'vm.order'
                 paths = path.split('.');
-                info.propertyPath = paths.pop(); // property is after last '.' 
-                info.entityPath = paths.join('.'); // path to entity is before last '.'                   
+                info.propertyPath = paths.pop(); // property is after last '.'
+                info.entityPath = paths.join('.'); // path to entity is before last '.'
             }
 
             // extract paths from strings using square-bracket notation, e.g. 'vm.order[delivery]'

@@ -1,7 +1,7 @@
 ﻿/*
  * Breeze Labs Abstract REST DataServiceAdapter
  *
- *  v.0.2.5
+ *  v.0.6.6
  *
  * Extends Breeze with a REST DataService Adapter abstract type
  *
@@ -12,7 +12,7 @@
  *
  * A concrete REST adapter
  *
- * - MUST replace the _createSaveRequest with a concrete implementation to enable save
+ * - MUST replace the _createChangeRequest with a concrete implementation to enable save
  *
  * - SHOULD replace the "noop" JsonResultsAdapter.
  *
@@ -31,21 +31,21 @@
  * If 'saveOnlyOne' == true, the adapter throws an exception
  * when asked to save more than one entity at a time.
  *
- * Copyright 2014 IdeaBlade, Inc.  All Rights Reserved.
+ * Copyright 2015 IdeaBlade, Inc.  All Rights Reserved.
  * Licensed under the MIT License
  * http://opensource.org/licenses/mit-license.php
  * Authors: Ward Bell
  */
-(function (definition, window) {
-    if (window.breeze) {
-        definition(window.breeze);
+(function (definition) {
+    if (typeof breeze === "object") {
+        definition(breeze);
     } else if (typeof require === "function" && typeof exports === "object" && typeof module === "object") {
         // CommonJS or Node
-        var b = require('breeze');
+        var b = require('breeze-client');
         definition(b);
-    } else if (typeof define === "function" && define["amd"] && !window.breeze) {
+    } else if (typeof define === "function" && define["amd"]) {
         // Requirejs / AMD
-        define(['breeze'], definition);
+        define(['breeze-client'], definition);
     } else {
         throw new Error("Can't find breeze");
     }
@@ -56,6 +56,9 @@
 
     breeze.AbstractRestDataServiceAdapter = ctor;
 
+    // borrow from the AbstractDataServiceAdapter
+    var abstractDsaProto = breeze.AbstractDataServiceAdapter.prototype;
+
     ctor.prototype = {
 
         // Breeze DataService API
@@ -65,16 +68,21 @@
         saveChanges: saveChanges,
 
         // Configuration API
+        changeRequestInterceptor: abstractDsaProto.changeRequestInterceptor, // default, no-op ctor
         checkForRecomposition: checkForRecomposition,
         saveOnlyOne: false, // true if may only save one entity at a time.
         ignoreDeleteNotFound: true, // true if should ignore a 404 error from a delete
 
         // "protected" members available to derived concrete dataservice adapter types
         _addToSaveContext: _addToSaveContext,
+        _addKeyMapping: _addKeyMapping,
         _ajaxImpl: undefined, // see initialize()
+        _catchNoConnectionError: abstractDsaProto._catchNoConnectionError,
+        _createChangeRequestInterceptor: abstractDsaProto._createChangeRequestInterceptor,
+        _changeRequestSucceeded: _changeRequestSucceeded,
         _createErrorFromResponse: _createErrorFromResponse,
+        _createChangeRequest: _createChangeRequest,
         _createJsonResultsAdapter: _createJsonResultsAdapter,
-        _createSaveRequest: _createSaveRequest,
         _clientTypeNameToServer: _clientTypeNameToServer,
         _getEntityTypeFromMappingContext: _getEntityTypeFromMappingContext,
         _getNodeEntityType: _getNodeEntityType,
@@ -100,9 +108,7 @@
             throw new Error("Breeze was unable to find an 'ajax' adapter for " + adapter.name);
         }
 
-        // Todo: hacking for Q right now; use promise adapter after Breeze makes it available
-        // if no breeze.Q, assume Q is in global window namespace (e.g., Q.js)
-        adapter.Q = breeze.Q ? breeze.Q : window.Q;
+        adapter.Q = breeze.Q; // adapter.Q is for backward compat
 
         if (!adapter.jsonResultsAdapter) {
             adapter.jsonResultsAdapter = adapter._createJsonResultsAdapter();
@@ -116,7 +122,7 @@
     }
 
     function executeQuery(mappingContext) {
-        var adapter = this;
+        var adapter = mappingContext.adapter = this;
         var deferred = adapter.Q.defer();
         var url = mappingContext.getUrl();
         var headers = {
@@ -130,7 +136,7 @@
             params: mappingContext.query.parameters,
             success: querySuccess,
             error: function (response) {
-                deferred.reject(adapter._createErrorFromResponse(response, url));
+                deferred.reject(adapter._createErrorFromResponse(response, url, mappingContext));
             }
         });
         return deferred.promise;
@@ -138,13 +144,17 @@
         function querySuccess(response) {
             try {
                 var rData = {
-                    results: adapter._getResponseData(response).results,
+                    results: adapter._getResponseData(response),
                     httpResponse: response
                 };
                 deferred.resolve(rData);
             } catch (e) {
-                // program error means adapter it broken, not SP or the user
-                deferred.reject(new Error("Program error: failed while parsing successful query response"));
+                // if here, the adapter is broken, not bad data
+                var err = new Error("Query failed while parsing successful query response")
+                err.name = "Program Error";
+                err.response = response;
+                err.originalError = e;
+                deferred.reject(err);
             }
         }
     }
@@ -154,18 +164,17 @@
     }
 
     function saveChanges(saveContext, saveBundle) {
-        var adapter = this;
+        var adapter = saveContext.adapter = this;
         var Q = adapter.Q;
 
         try {
             if (adapter.saveOnlyOne && saveBundle.entities.length > 1) {
                 return Q.reject(new Error("Only one entity may be saved at a time."));
             }
-            saveContext.adapter = adapter;
             adapter._addToSaveContext(saveContext);
 
-            var requests = createSaveRequests(saveContext, saveBundle);
-            var promises = sendSaveRequests(saveContext, requests);
+            var requests = createChangeRequests(saveContext, saveBundle);
+            var promises = sendChangeRequests(saveContext, requests);
             var comboPromise = Q.all(promises);
             return comboPromise
                 .then(reviewSaveResult)
@@ -207,19 +216,46 @@
 
     function _addToSaveContext(/* saveContext */) { }
 
+    function _addKeyMapping(saveContext, index, saved) {
+        var tempKey = saveContext.tempKeys[index];
+        if (tempKey) {
+            // entity had a temporary key; add a temp-to-perm key mapping
+            var entityType = tempKey.entityType;
+            var tempValue = tempKey.values[0];
+            var realKey = getRealKey(entityType, saved);
+            var keyMapping = {
+                entityTypeName: entityType.name,
+                tempValue: tempValue,
+                realValue: realKey.values[0]
+            };
+            saveContext.saveResult.keyMappings.push(keyMapping);
+        }
+    }
+
     function _clientTypeNameToServer(typeName) {
         var jrAdapter = this.jsonResultsAdapter;
         return jrAdapter.clientTypeNameToServer ?
             jrAdapter.clientTypeNameToServer(typeName) : typeName;
     }
 
-    function _createErrorFromResponse(response, url) {
-        var result = new Error();
-        result.response = response;
-        if (url) { result.url = url; }
-        result.message = response.message || response.error || response.statusText;
-        result.statusText = response.statusText;
-        result.status = response.status;
+    function _createChangeRequest(/* saveContext, entity, index */) {
+        throw new Error("Need a concrete implementation of _createChangeRequest");
+    }
+
+    // Create error object for both query and save responses.
+    // A method on the adapter (`this`)
+    // 'context' can help differentiate query and save
+    // 'errorEntity' only defined for save response
+    function _createErrorFromResponse(response, url, context, errorEntity) {
+        var err = new Error();
+        err.response = response;
+        var data = response.data || {};
+        if (url) { err.url = url; }
+        err.status = data.code || response.status || '???';
+        err.statusText = response.statusText || err.status;
+        err.message = data.error || response.message || response.error || err.statusText;
+        this._catchNoConnectionError(err);
+        return err;
     }
 
     function _createJsonResultsAdapter(/*dataServiceAdapter*/) {
@@ -232,13 +268,9 @@
         });
     }
 
-    function _createSaveRequest(/* saveContext, entity, index */) {
-        throw new Error("Need a concrete implementation of _createSaveRequest");
-    }
-
     function _getEntityTypeFromMappingContext(mappingContext) {
         var query = mappingContext.query;
-        if (!query) {return null;}
+        if (!query) { return null; }
         var entityType = query.entityType || query.resultEntityType;
         if (!entityType) { // try to figure it out from the query.resourceName
             var metadataStore = mappingContext.metadataStore;
@@ -281,7 +313,7 @@
         return response.data;
     }
 
-    function _processSavedEntity(/*savedEntity, saveContext, response, index*/){
+    function _processSavedEntity(/*savedEntity, response, saveContext, index*/) {
         // Virtual method. Override in concrete adapter if needed.
     }
 
@@ -316,14 +348,19 @@
 
     /*** private members ***/
 
-    function createSaveRequests(saveContext, saveBundle) {
+    function createChangeRequests(saveContext, saveBundle) {
         var adapter = saveContext.adapter;
         var originalEntities = saveContext.originalEntities = saveBundle.entities;
         saveContext.tempKeys = [];
 
+        var changeRequestInterceptor =
+            adapter._createChangeRequestInterceptor(saveContext, saveBundle);
+
         var requests = originalEntities.map(function (entity, index) {
-            return adapter._createSaveRequest(saveContext, entity, index);
+            var request = adapter._createChangeRequest(saveContext, entity, index);
+            return changeRequestInterceptor.getRequest(request, entity, index);
         });
+        changeRequestInterceptor.done(requests);
         return requests;
     }
 
@@ -332,7 +369,7 @@
             breeze.DataProperty.getRawValueFromServer);
     }
 
-    function sendSaveRequests(saveContext, requests) {
+    function sendChangeRequests(saveContext, requests) {
         // Sends each prepared save request and processes the promised results
         // returns a single "comboPromise" that waits for the individual promises to complete
         // Todo: What happens when there are a gazillion async requests?
@@ -345,11 +382,11 @@
         saveContext.saveResult = saveResult;
 
         return requests.map(function (request, index) {
-            return sendSaveRequest(saveContext, request, index);
+            return sendChangeRequest(saveContext, request, index);
         });
     }
 
-    function sendSaveRequest(saveContext, request, index) {
+    function sendChangeRequest(saveContext, request, index) {
         var adapter = saveContext.adapter;
         var deferred = adapter.Q.defer();
         var url = request.requestUri;
@@ -370,8 +407,8 @@
                 if ((!status) || status >= 400) {
                     tryRequestFailed(response);
                 } else {
-                    var savedEntity = saveRequestSucceeded(saveContext, response, index);
-                    adapter._processSavedEntity(savedEntity, saveContext, response, index);
+                    var savedEntity = adapter._changeRequestSucceeded(saveContext, response, index);
+                    adapter._processSavedEntity(savedEntity, response, saveContext, index);
                     deferred.resolve(true);
                 }
             } catch (e) {
@@ -392,9 +429,10 @@
                     tryRequestSucceeded(response);
                 } else {
                     // Do NOT fail saveChanges at the request level
+                    var errorEntity = saveContext.originalEntities[index];
                     saveContext.saveResult.entitiesWithErrors.push({
-                        entity: saveContext.originalEntities[index],
-                        error: adapter._createErrorFromResponse(response, url)
+                        entity: errorEntity,
+                        error: adapter._createErrorFromResponse(response, url, saveContext, errorEntity)
                     });
                     deferred.resolve(false);
                 }
@@ -405,34 +443,18 @@
         }
     }
 
-    function saveRequestSucceeded(saveContext, response, index) {
+    function _changeRequestSucceeded(saveContext, response, index) {
         var saved = saveContext.adapter._getResponseData(response);
         if (saved && typeof saved === 'object') {
             // Have "saved entity" data; add its type (for JsonResultsAdapter) & KeyMapping
             saved.$entityType = saveContext.originalEntities[index].entityType;
-            addKeyMapping();
+            saveContext.adapter._addKeyMapping(saveContext, index, saved);
         } else {
             // No "saved entity" data; return the original entity
             saved = saveContext.originalEntities[index];
         }
         saveContext.saveResult.entities.push(saved);
         return saved;
-
-        function addKeyMapping(){
-            var tempKey = saveContext.tempKeys[index];
-            if (tempKey) {
-                // entity had a temporary key; add a temp-to-perm key mapping
-                var entityType = tempKey.entityType;
-                var tempValue = tempKey.values[0];
-                var realKey = getRealKey(entityType, saved);
-                var keyMapping = {
-                    entityTypeName: entityType.name,
-                    tempValue: tempValue,
-                    realValue: realKey.values[0]
-                };
-                saveContext.saveResult.keyMappings.push(keyMapping);
-            }
-        }
     }
 
-}, this));
+}));
