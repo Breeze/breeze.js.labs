@@ -190,7 +190,7 @@
       // added entities normally don't have original values but these will now
       var added = entities ?
         entities.filter(function (e) { return e.entityAspect.entityState.isAdded(); }) :
-        self.entityManager.getChanges(null, breeze.EntityState.Added);
+        self.entityManager.getEntities(null, breeze.EntityState.Added);
       added.forEach(function (entity) {
         var props = entity.entityType.dataProperties;
         var originalValues = entity.entityAspect.originalValues;
